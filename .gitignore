@@ -1,0 +1,7 @@
+.idea/
+__pycache__/
+.local/
+venv/s
+.venv/s
+*.7z
+*.zip
