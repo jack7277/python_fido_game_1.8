@@ -1,5 +1,5 @@
-from PIL import Image
-from image import DrawImage
+cps = 200
+bad = 1
 
-img = DrawImage(Image.open("fidologo.bmp"))
-img.draw_image()
+cps >>= bad
+print(cps)

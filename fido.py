@@ -15,6 +15,22 @@ from date import *
 from wnds import *
 from wnds import _box
 
+import random
+
+def lrandom(x):
+    return x if x == 0 else (random.randint(0, 0xFFFF) * random.randint(0, 0xFFFF)) % x
+
+def random_(x):
+    return -random.randint(0, -x) if x < 0 else random.randint(0, x)
+
+def upcase(c):
+    return chr(ord(c) & ~0x20)
+
+def setbit(x, n):
+    return x | (1 << n)
+
+def tstbit(x, n):
+    return x & (1 << n)
 
 class toccup:
     def __init__(self, name, ord, func):
@@ -983,7 +999,7 @@ def chrep(dr, chrp=1):
         elif you.status == 0:
             if you.reput < -8:
                 if chrp:
-                    block(1, 24, 0x4F)
+                    # block(1, 24, 0x4F)
                     message("Это ж кем надо быть, чтоб ни один сисоп не хотел иметь с вами дела!\n"
                             "         Вообще таким, как вы, надо винт форматировать... \n"
                             "                    Идите-ка отсюда, пока целы!", 0x4F)
@@ -993,11 +1009,12 @@ def chrep(dr, chrp=1):
 
 
 def incsoft(ds, chrp=1):
-    if you.soft + params.os[you.os]['memory'] + ds > you.hdspace:
+    mem1 = you.soft + params.os[you.os]['memory'] + ds
+    if mem1 > you.hdspace:
         ds = you.hdspace - you.soft - params.os[you.os]['memory']
     if not ds:
         return 0
-    chrep(random() * (ds * you.status / 512) / 2, chrp)
+    chrep(random_(ds * you.status / 512) / 2, chrp)
     you.soft += ds
     return ds
 
@@ -1531,12 +1548,12 @@ def session(k1, cps, con, y, x, s):
             pass
         i -= bad
         if cps <= con / 100:
-            prn(y, x + j + 2, "Cancelled")
+            prn(0, 0, "Cancelled")
             delay(1500)
             break
         if not random.randint(0, 50 + you.modem * 10):
             bad = 1
-        delay(400)
+        delay(4) # todo 400
     k1 = i - 1
     return p
 
@@ -1638,12 +1655,12 @@ def callBBS(n, you):
         cps = con / (10 + random.randint(0, 10))
         # c = getch()
         # switch(upcase(c)):
-        c = 'f'  # todo дебаг выбор F
+        c = 'M'  # todo дебаг выбор
         if c.upper() == 'F':
             prn(9, 22, "File areas")
             prn(11, 23, "U-Upload to us  D-Download to you")
             # c = getch()
-            c = 'U'   # todo дебаг выбор
+            c = 'D'   # todo дебаг выбор
             if c.upper() == 'U':
                 try:
                     cmp1 = (int(cps) * k * 60) >> 10
@@ -1680,9 +1697,9 @@ def callBBS(n, you):
                 chrep(u >> (9 + (you.reput >> 5)))
                 # break
             if c.upper() == 'D':
-                u = min((cps * k * 60) >> 10, bbs[n].soft)
-                u = min(u, you.hdspace - you.soft - params.os[you.os].size)
-                if u == bbs[n].soft or u == you.hdspace - you.soft - params.os[you.os].size:
+                u = min((int(cps) * k * 60) >> 10, bbs[n].soft)
+                u = min(u, you.hdspace - you.soft - params.os[you.os]['memory'])
+                if u == bbs[n].soft or u == you.hdspace - you.soft - params.os[you.os]['memory']:
                     k1 = (u << 10) / (cps * 60)
                 else:
                     k1 = k
@@ -1696,19 +1713,19 @@ def callBBS(n, you):
                 bbs[n].soft -= u
                 bbs[n].D += u
                 u = incsoft(u)
-                i = prn(0, 0, "   " + str(u) + "K received")
+                prn(0, 0, f"{u}K received")
                 if u:
-                    prn(0, 0, s + i, ", CPS " + str(cps) + "          ")
+                    prn(0, 0, s + ", CPS " + str(cps) + "          ")
                 prnc(13, 23, s, 0x0F)
                 if not u:
                     pass
                     # break
                 chmood(u >> 11)
-                if not random(10):
+                if not random.randint(0, 10):
                     you.antiv = params.D
                     message("Вы скачали свежий антивирус! Полезная вещь...", 0x1F)
                     chmood(1)
-                you.virus += ((u * random() < (u >> 5)))
+                you.virus += ((lrandom(u) < (u >> 5)))
                 # break
             if c.upper() == 27:
                 clrbl(7, 19, 22, 69, 0x0F)
@@ -1721,11 +1738,11 @@ def callBBS(n, you):
                     bbs[n].mxtime = 180
                 # goto(nxt)
         if c.upper() == 'M':
-            prn(9, 22, "Message areas                                ")
+            prn(9, 22, "Message areas")
             for i in range(2, params.LE):
                 if bbs[n].ech[i - 2]:
-                    prn(0, 0, "%d) %s", i - 1, echoes[i].name)
-                    prn(10 + j, 22, s)
+                    prn(0, 0, f"{i - 1}) {echoes[i].name}")
+                    # prn(10 + j, 22, s)
                     j += 1
             # getc:
             c = getch()
@@ -3074,7 +3091,7 @@ def main():
                 break
 
             if i == 1:
-                if D.month() != 6:
+                if params.D.month() != 6:
                     message("Вступительные экзамены будут в июне!", 0x4F)
                 else:
                     if you.tries > 3:
@@ -3124,6 +3141,7 @@ def main():
             if you.status > 1:
                 i = menu(12, 25, 0x70, 0x0F, points, "Поинты", 1)
                 # switch (i):
+                i = 1 # todo дебаг
                 if i == 1:
                     if not echoes[2].stat:
                         prn(0, 0, "Подпишитесь на эху %s", echoes[2].name)
