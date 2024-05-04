@@ -1,5 +1,4 @@
-cps = 200
-bad = 1
+import random
 
-cps >>= bad
-print(cps)
+a = not random.randint(0, 20)
+print(a)

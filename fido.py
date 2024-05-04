@@ -15,7 +15,9 @@ from date import *
 from wnds import *
 from wnds import _box
 
-import random
+
+def _rnd(x):
+    return int((random.randint(0, x) * x) / (random.randint(0, 0x7fff) + 1))
 
 def lrandom(x):
     return x if x == 0 else (random.randint(0, 0xFFFF) * random.randint(0, 0xFFFF)) % x
@@ -234,61 +236,6 @@ class Person:
 
 you = Person()
 
-class Echo:
-    def __init__(self, you):
-        self.name = ''
-        self.stat = 0  # 0 - Unlinked 1 - Linked 2 - moderator 80 - read from BBS
-        self.mark = 0  # 1 - autoread, 2 - passthru
-        self.msg = 0
-        self.newm = 0
-        self.new1 = 0  # messages: total, unread, new for this day
-        self.dl = params.Date()  # для отключенных - дата подключения. if < current - ignored
-        self.plus = 0  # number of [+]
-        self.traf = 0  # средний трафик в К
-        self.trafk = 0.0  # traf*trafk - сколько мин. в день отнимает чтение эхи (Style==0)
-        self.read = 0  # % свежих прочитанных писем, за 4 дня уходит в 0
-        self.izverg = 0.0  # коэф. злобности модератора
-        self.you = you
-
-    def event(self):
-        if random.randint(0, 4) != 0:
-            return 0
-        l = random.randint(32, 1055)
-        l = self.incsoft(l)
-        you.virus += random.randint(0, l) < (l >> 5)
-        if random.randint(0, 4) == 0:
-            you.antiv = params.D
-            message("A fresh antivirus came through the file echo! Useful thing...", 0x1F)
-            chmood(1)
-        return 1
-
-    def incsoft(self, ds, chrp=1):
-        if you.soft + os[self.you.os].size + ds > self.you.hdspace:
-            ds = self.you.hdspace - you.soft - os[self.you.os].size
-        if not ds:
-            return 0
-        chrep(random.randint(0, ds * int(you.status / 512)) / 2, chrp)
-        you.soft += ds
-        return ds
-
-    def moderatorial(self, y, x):
-        nn = [" ", " второй ", " третий "]
-        if 100 * random() < params.prob[params.Style] * self.izverg * (1 + float(random() * (self.you.points)) / 32):
-            s = f"За нарушение правил вы получили {nn[1]} ПЛЮС"
-            self.plus += 1
-            # self.pluses += 1
-            d = -2
-            if self.plus == 3:
-                stat = 0
-                dl = params.D + 92
-                s += f"\nи отключены от конференции до {dl.day()}.{dl.month()}.{dl.year()}"
-                d -= 5
-            from_ = f"Moderator of {self.name}"
-            fidomess(from_, you.name, "moderatorial [!]" if self.plus > 2 else "moderatorial [+]", s, y, x)
-            chrep(d)
-            chmood(-(2 << self.plus))
-            return 1
-        return 0
 
 echoes = [Echo(you) for _ in range(params.LE+6)]
 
@@ -299,6 +246,30 @@ class fecho(Echo):
         self.traf = 1024
         self.trafk = 0.01
 
+
+def echtime(i):
+    return round(echoes[i].traf * echoes[i].trafk * (params.Style + 1) * (1 if echoes[i].stat > 2 else echoes[i].stat) * (11.0 - you.comp / 1.5) * (1 if you.os > 0 else 1.3) / 10.0)
+
+def echtime1(i, n):
+    t = round((n) * 2 * echoes[i].trafk * (params.Style + 1) * (1 if echoes[i].stat > 2 else echoes[i].stat) * (11.0 - you.comp / 1.5) * (1 if you.os > 0 else 1.3) / 10.0)
+    if not t and n:
+        t = 1
+    return t
+
+def delecho(n):
+    i = 0
+    if n > params.LE:
+        params.E -= 1
+        you.moder -= 1
+        echoes[n].name = ''
+    del echoes[n]
+    for i in range(n, params.E):
+        echoes[i] = echoes[i + 1]
+        echoname[i] = echoname[i + 1]
+        echoes[i].name = echoname[i]
+        echodescr[i] = echodescr[i + 1]
+    if n > params.LE:
+        echoname[params.E] = None
 
 def final(st):
     s = ' ' * 1024
@@ -418,87 +389,6 @@ bbs = [BBS() for _ in range(10)]
 
 
 
-# class echo:
-#     def __init__(self,n):
-#         self.name=echoname[n]
-#         self.stat=0
-#         self.plus=0
-#         self.traf=20
-#         self.trafk=0.4
-#         self.read=0
-#         self.izverg=1
-#         self.moderatorial()
-#     def moderatorial(self,y=5,x=8):
-#         return 0
-#     def event(self):
-#         return 0
-#
-# class netmail(echo):
-#     def __init__(self):
-#         super().__init__(0)
-#         self.izverg=0
-#         self.traf=0
-#         self.trafk=0.7
-#
-# class local(echo):
-#     def __init__(self):
-#         super().__init__(1)
-#         self.izverg=0
-#         self.traf=10
-#         self.trafk=0.5
-#
-# class point(echo):
-#     def __init__(self):
-#         super().__init__(2)
-#         self.traf=15
-#
-# class exch(echo):
-#     def __init__(self):
-#         super().__init__(3)
-#
-# class bllog(echo):
-#     def __init__(self):
-#         super().__init__(4)
-#
-# class ruanekdot(echo):
-#     def __init__(self):
-#         super().__init__(5)
-#         self.izverg=4
-#         self.traf=70
-#         self.trafk=0.5
-#
-# class job(echo):
-#     def __init__(self):
-#         super().__init__(6)
-#         self.izverg=2.0
-#         self.traf=35
-#         self.trafk=0.2
-#
-# class vcool(echo):
-#     def __init__(self):
-#         super().__init__(7)
-#         self.izverg=2.0
-#         self.traf=45
-#         self.trafk=0.45
-#
-# class hardw(echo):
-#     def __init__(self):
-#         super().__init__(8)
-#         self.traf=100
-#         self.trafk=0.4
-#
-# class softw(echo):
-#     def __init__(self):
-#         super().__init__(9)
-#         self.traf=100
-#         self.trafk=0.4
-#
-# class fecho(echo):
-#     def __init__(self):
-#         super().__init__(10)
-#         self.izverg=0
-#         self.traf=1024
-#         self.trafk=0.01
 
 Cursor = 0
 
@@ -1264,244 +1154,6 @@ def proposal(i):
     return 1
 
 
-class Netmail(Echo):
-    def __init__(self):
-        super().__init__(0)
-        self.izverg = 0
-        self.traf = 0
-        self.trafk = 0.7
-
-    def event(self):
-        return 0
-
-
-class Local(Echo):
-    def __init__(self):
-        super().__init__(you)
-        self.izverg = 0
-        self.traf = 10
-        self.trafk = 0.5
-
-    def event(self):
-        return 0
-
-
-class Point(Echo):
-    def __init__(self):
-        super().__init__(you)
-        self.traf = 15
-
-    def event(self):
-        return 0
-
-
-class Exch(Echo):
-    def __init__(self):
-        super().__init__(you)
-
-    def event(self):
-        return 0
-
-
-class Bllog(Echo):
-    def __init__(self):
-        super().__init__(you)
-
-    def event(self):
-        return 0
-
-
-class Ruanekdot(Echo):
-    def __init__(self):
-        super().__init__(you)
-        self.izverg = 4
-        self.traf = 70
-        self.trafk = 0.5
-
-    def event(self):
-        return 0
-
-
-class Job(Echo):
-    def __init__(self):
-        super().__init__(you)
-        self.izverg = 2.0
-        self.traf = 35
-        self.trafk = 0.2
-
-    def event(self):
-        return 0
-
-
-class Vcool(Echo):
-    def __init__(self):
-        super().__init__(you)
-        self.izverg = 2.0
-        self.traf = 45
-        self.trafk = 0.45
-
-    def event(self):
-        return 0
-
-
-class Hardw(Echo):
-    def __init__(self):
-        super().__init__(you)
-        self.traf = 100
-        self.trafk = 0.4
-
-    def event(self):
-        return 0
-
-
-class Softw(Echo):
-    def __init__(self):
-        super().__init__(you)
-        self.traf = 100
-        self.trafk = 0.4
-
-    def event(self):
-        return 0
-
-
-class Fecho(Echo):
-    def __init__(self):
-        super().__init__(you)
-        self.izverg = 0
-        self.traf = 1024
-        self.trafk = 0.01
-
-    def event(self):
-        return 0
-
-
-def netmail_event():
-    traf = 1
-    traf += random() * (params.Style * 3) - 2
-    if traf < 0:
-        traf = 0
-    traf *= params.Style / (1.5 + random() * (params.Style * 2) / 4.0)
-    while echtime(0) > 24 * 60:
-        traf /= 2
-    chmood(int(random() * (traf)) >> 2)
-    if params.Style == 3:
-        if you.friends != 0:
-            you.friends -= int(20 * random())
-            if you.friends < 0:
-                you.friends = 0
-    else:
-        you.friends += random.randint(0, params.Style + 1) and not random.randint(0, 16)
-    for i in range(1, 4):
-        if random() * (you.skill[i] >> 6) and not random.randint(0, 10):
-            if proposal(i):
-                break
-    return traf
-
-
-def local_event():
-    traf = 11111111111111
-    traf += random() * (params.Style * 2) + random() * (5) - 2
-    if you.status > 1:
-        if params.Style == 3 or not params.Style:
-            traf *= (5.0 - params.Style + random.randint(0, 5)) / 10
-    if traf < 0:
-        traf = 0
-    while echtime(0) > 24 * 60:
-        traf /= 2
-    chmood(int(random() * (traf)) >> 3)
-    return traf
-
-
-def point_event():
-    maxpnt = 555555
-    if you.points < maxpnt and not 3 * random():
-        d = you.points
-        you.points += 4 * random()
-        if you.points >= maxpnt:
-            you.points = maxpnt
-            maxpnt = 0
-        chrep((you.points - d) * (4 + 2 * random()))
-        if d:
-            echoes[1].traf *= float(you.points) / d
-        else:
-            echoes[1].traf += 5 * random() * you.points
-        return 1
-    return 0
-
-
-def ruanekdot_event():
-    i = 3 * random()
-    chmood(int(i))
-    return int(i)
-
-
-def job_event():
-    if not 20 * random() or params.BBSf:
-        return 0
-    return 1
-
-
-def vcool_event():
-    k = None
-    if not 20 * random() or you.reput < 0:
-        return 0
-    s = 'salloc(80)'
-    if random(5) == 0:
-        if not you.wprof:
-            pass
-        k = (random() * (you.reput >> 2) / 10) * 10
-        if not k:
-            k = 5
-        you.income += k
-        s = f"Информация из эхи VERY.COOL позволила вам зарабатывать на ${k} больше!"
-        message(s, 0x1F)
-    elif random(5) == 1:
-        if you.ftime < 5 * 60:
-            if (k := (random(3) + 1) * 10) < you.wtime - 60:
-                you.ftime += k
-                you.wtime -= k
-                s = f"Информация из эхи VERY.COOL позволила вам освободить {k} минут в день!"
-                message(s, 0x1F)
-    else:
-        k = random() * (you.reput_() >> 3) + 1
-        you.money += k
-        s = f"Информация из эхи VERY.COOL позволила вам заработать ${k}!"
-        message(s, 0x1F)
-    # free(s)
-    return 1
-
-
-def fecho_event():
-    if not random(5):
-        l = random(1024) + 32
-        l = incsoft(l)
-        you.virus += random(l) < (l >> 5)
-        if not random(5):
-            you.antiv = params.D
-            message("По файлэхе пришел свежий антивирус! Полезная вещь...", 0x1F)
-            chmood(1)
-        return 1
-    return 0
-
-
-def exch_event():
-    if not random(8):
-        you.skill[3] += 1
-
-
-def bllog_event():
-    if not random(8):
-        you.skill[3] += 1
-
-
-def hardw_event():
-    if not random(3):
-        you.skill[2] += 1
-
-
-def softw_event():
-    if not random(3):
-        you.skill[1] += 1
 
 
 def test(tst, N, y, x):
@@ -2846,16 +2498,17 @@ def initech():
     for i in range(0, params.LE + 6):
         echoes.append(Echo(you))
 
-    echoes[1] = Local()
-    echoes[2] = Point()
-    echoes[3] = Exch()
-    echoes[4] = Bllog()
-    echoes[5] = Ruanekdot()
-    echoes[6] = Job()
-    echoes[7] = Vcool()
-    echoes[8] = Hardw()
-    echoes[9] = Softw()
-    echoes[10] = Fecho()
+    import echo
+    echoes[1] = echo.Local()
+    echoes[2] = echo.Point()
+    echoes[3] = echo.Exch()
+    echoes[4] = echo.Bllog()
+    echoes[5] = echo.Ruanekdot()
+    echoes[6] = echo.Job()
+    echoes[7] = echo.Vcool()
+    echoes[8] = echo.Hardw()
+    echoes[9] = echo.Softw()
+    echoes[10] = echo.Fecho()
     return echoes
 
 
