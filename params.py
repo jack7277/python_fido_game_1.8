@@ -15,19 +15,23 @@ mofs = [
     31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30,
 ]
 
+
 class Date:
     def __init__(self, day=1, month=1, year=1990):
         self.date = 0
         self.date = self.setdate(day, month, year)
         # print()
 
-    def _year(self, date):
+    @staticmethod
+    def _year(date):
         return ((date & 0xFE00) >> 9) + 1990
 
-    def _month(self, date):
+    @staticmethod
+    def _month(date):
         return (date & 0x01E0) >> 5
 
-    def _day(self, Date):
+    @staticmethod
+    def _day(Date):
         return Date & 0x001F
 
     def year(self):
@@ -109,7 +113,7 @@ class Date:
 
     @staticmethod
     def dstodate(days):
-        d=j=i=k=y= 0
+        d = j = i = k = y = 0
         dt = Date()
         y = days // 365.25
         while (d := y * 365 + ((y + 3) // 4)) >= days:
@@ -202,11 +206,11 @@ OSnames = [
 
 # Define the OS information
 os = [
-    {"memory": 3 * (2 ** 10), "disk": 8, "index": 0},
-    {"memory": 15 * (2 ** 10), "disk": 20, "index": 1},
-    {"memory": 70 * (2 ** 10), "disk": 30, "index": 2},
-    {"memory": 100 * (2 ** 10), "disk": 60, "index": 3},
-    {"memory": 150 * (2 ** 10), "disk": 50, "index": 3},
-    {"memory": 200 * (2 ** 10), "disk": 90, "index": 3}
+    {"memory": 3 * (2 ** 10), "itime": 8, "mincomp": 0},
+    {"memory": 15 * (2 ** 10), "itime": 20, "mincomp": 1},
+    {"memory": 70 * (2 ** 10), "itime": 30, "mincomp": 2},
+    {"memory": 100 * (2 ** 10), "itime": 60, "mincomp": 3},
+    {"memory": 150 * (2 ** 10), "itime": 50, "mincomp": 3},
+    {"memory": 200 * (2 ** 10), "itime": 90, "mincomp": 3}
 ]
 

@@ -1,4 +1,4 @@
 import random
 
-a = not random.randint(0, 20)
+a = random.randint(0, 1)
 print(a)

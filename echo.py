@@ -1,7 +1,7 @@
 import random
 
 import params
-from fido import you, message, chmood, chrep, fidomess, echtime, _rnd, proposal
+from fido import you, message, chmood, chrep, fidomess, echo_time, _rnd, proposal, echoname, incsoft, echoes
 
 
 class Echo:
@@ -33,8 +33,8 @@ class Echo:
         return 1
 
     def incsoft(self, ds, chrp=1):
-        if you.soft + os[self.you.os].size + ds > self.you.hdspace:
-            ds = self.you.hdspace - you.soft - os[self.you.os].size
+        if you.soft + params.os[self.you.os].size + ds > self.you.hdspace:
+            ds = self.you.hdspace - you.soft - params.os[self.you.os].size
         if not ds:
             return 0
         chrep(random.randint(0, ds * int(you.status / 512)) / 2, chrp)
@@ -68,13 +68,14 @@ class Netmail(Echo):
         self.traf = 0
         self.trafk = 0.7
 
+    # todo тут всё неправильно, переделать
     def event(self):
         i = 0
         self.traf += _rnd(params.Style * 3) - 2
         if self.traf < 0:
             traf = 0
         self.traf *= params.Style / float(1.5 + _rnd(params.Style * 2) / 4.0)
-        while int(echtime(0)) > 24 * 60:
+        while int(echo_time(0)) > 24 * 60:
             self.traf /= 2
         chmood(_rnd(self.traf) >> 2)
         if params.Style == 3:
@@ -95,8 +96,9 @@ class Local(Echo):
         self.izverg = 0
         self.traf = 10
         self.trafk = 0.5
+        self.name = echoname[1]
 
-    def local_event(self):
+    def event(self):
         traf = 11111111111111
         traf += random() * (params.Style * 2) + random() * (5) - 2
         if you.status > 1:
@@ -104,7 +106,7 @@ class Local(Echo):
                 traf *= (5.0 - params.Style + random.randint(0, 5)) / 10
         if traf < 0:
             traf = 0
-        while echtime(0) > 24 * 60:
+        while echo_time(0) > 24 * 60:
             traf /= 2
         chmood(int(random() * (traf)) >> 3)
         return traf
@@ -114,14 +116,29 @@ class Point(Echo):
     def __init__(self):
         super().__init__(2)
         self.traf = 15
+        self.name = echoname[2]
 
     def event(self):
+        maxpnt = 555555
+        if you.points < maxpnt and not 3 * random():
+            d = you.points
+            you.points += 4 * random()
+            if you.points >= maxpnt:
+                you.points = maxpnt
+                maxpnt = 0
+            chrep((you.points - d) * (4 + 2 * random()))
+            if d:
+                echoes[1].traf *= float(you.points) / d
+            else:
+                echoes[1].traf += 5 * random() * you.points
+            return 1
         return 0
 
 
 class Exch(Echo):
     def __init__(self):
         super().__init__(3)
+        self.name = echoname[3]
 
     def event(self):
         return 0
@@ -130,6 +147,7 @@ class Exch(Echo):
 class Bllog(Echo):
     def __init__(self):
         super().__init__(4)
+        self.name = echoname[4]
 
     def event(self):
         return 0
@@ -141,9 +159,12 @@ class Ruanekdot(Echo):
         self.izverg = 4
         self.traf = 70
         self.trafk = 0.5
+        self.name = echoname[5]
 
     def event(self):
-        return 0
+        i = random.randint(0, 3)
+        chmood(int(i))
+        return int(i)
 
 
 class Job(Echo):
@@ -152,9 +173,12 @@ class Job(Echo):
         self.izverg = 2.0
         self.traf = 35
         self.trafk = 0.2
+        self.name = echoname[6]
 
     def event(self):
-        return 0
+        if not random.randint(0, 20) or params.BBSf:
+            return 0
+        return 1
 
 
 class Vcool(Echo):
@@ -163,9 +187,36 @@ class Vcool(Echo):
         self.izverg = 2.0
         self.traf = 45
         self.trafk = 0.45
+        self.name = echoname[7]
 
     def event(self):
-        return 0
+        k = None
+        if not random.randint(0, 20) or you.reput < 0:
+            return 0
+        s = 'salloc(80)'
+        if random.randint(0, 5) == 0:
+            if not you.wprof:
+                pass
+            k = (random.randint(0, int((you.reput >> 2) / 10))) * 10
+            if not k:
+                k = 5
+            you.income += k
+            s = f"Информация из эхи VERY.COOL позволила вам зарабатывать на ${k} больше!"
+            message(s, 0x1F)
+        elif random.randint(0, 5) == 1:
+            if you.ftime < 5 * 60:
+                k = (random.randint(0, 3) + 1) * 10
+                if k < you.wtime - 60:
+                    you.ftime += k
+                    you.wtime -= k
+                    s = f"Информация из эхи VERY.COOL позволила вам освободить {k} минут в день!"
+                    message(s, 0x1F)
+        else:
+            k = random.randint(0, (you.reput_() >> 3)) + 1
+            you.money += k
+            s = f"Информация из эхи VERY.COOL позволила вам заработать ${k}!"
+            message(s, 0x1F)
+        return 1
 
 
 class Hardw(Echo):
@@ -173,9 +224,11 @@ class Hardw(Echo):
         super().__init__(8)
         self.traf = 100
         self.trafk = 0.4
+        self.name = echoname[8]
 
     def event(self):
-        return 0
+        if not random.randint(0, 3):
+            you.skill[2] += 1
 
 
 class Softw(Echo):
@@ -183,9 +236,11 @@ class Softw(Echo):
         super().__init__(9)
         self.traf = 100
         self.trafk = 0.4
+        self.name = echoname[9]
 
     def event(self):
-        return 0
+        if not random.randint(0, 3):
+            you.skill[1] += 1
 
 
 class Fecho(Echo):
@@ -194,83 +249,20 @@ class Fecho(Echo):
         self.izverg = 0
         self.traf = 1024
         self.trafk = 0.01
+        self.name = echoname[10]
 
     def event(self):
+        if not random.randint(0, 5):
+            l = random.randint(0, 1024) + 32
+            l = incsoft(l)
+            ttt = random.randint(0, l) < (l >> 5)
+            you.virus += ttt
+            if not random.randint(0, 5):
+                you.antiv = params.D
+                message("По файлэхе пришел свежий антивирус! Полезная вещь...", 0x1F)
+                chmood(1)
+            return 1
         return 0
-
-
-
-
-def point_event():
-    maxpnt = 555555
-    if you.points < maxpnt and not 3 * random():
-        d = you.points
-        you.points += 4 * random()
-        if you.points >= maxpnt:
-            you.points = maxpnt
-            maxpnt = 0
-        chrep((you.points - d) * (4 + 2 * random()))
-        if d:
-            echoes[1].traf *= float(you.points) / d
-        else:
-            echoes[1].traf += 5 * random() * you.points
-        return 1
-    return 0
-
-
-def ruanekdot_event():
-    i = 3 * random()
-    chmood(int(i))
-    return int(i)
-
-
-def job_event():
-    if not 20 * random() or params.BBSf:
-        return 0
-    return 1
-
-
-def vcool_event():
-    k = None
-    if not 20 * random() or you.reput < 0:
-        return 0
-    s = 'salloc(80)'
-    if random(5) == 0:
-        if not you.wprof:
-            pass
-        k = (random() * (you.reput >> 2) / 10) * 10
-        if not k:
-            k = 5
-        you.income += k
-        s = f"Информация из эхи VERY.COOL позволила вам зарабатывать на ${k} больше!"
-        message(s, 0x1F)
-    elif random(5) == 1:
-        if you.ftime < 5 * 60:
-            if (k := (random(3) + 1) * 10) < you.wtime - 60:
-                you.ftime += k
-                you.wtime -= k
-                s = f"Информация из эхи VERY.COOL позволила вам освободить {k} минут в день!"
-                message(s, 0x1F)
-    else:
-        k = random() * (you.reput_() >> 3) + 1
-        you.money += k
-        s = f"Информация из эхи VERY.COOL позволила вам заработать ${k}!"
-        message(s, 0x1F)
-    # free(s)
-    return 1
-
-
-def fecho_event():
-    if not random(5):
-        l = random(1024) + 32
-        l = incsoft(l)
-        you.virus += random(l) < (l >> 5)
-        if not random(5):
-            you.antiv = params.D
-            message("По файлэхе пришел свежий антивирус! Полезная вещь...", 0x1F)
-            chmood(1)
-        return 1
-    return 0
 
 
 def exch_event():
@@ -282,12 +274,3 @@ def bllog_event():
     if not random(8):
         you.skill[3] += 1
 
-
-def hardw_event():
-    if not random(3):
-        you.skill[2] += 1
-
-
-def softw_event():
-    if not random(3):
-        you.skill[1] += 1
