@@ -1,9 +1,7 @@
 from random import randint
 
+import fido
 import params
-from fido import bbs, echoes, fidomess, message, chmood, chrep, showstat, you, echodescr, check_traffic, echlink, \
-    echread, incsoft, fire, studper, expel
-from wnds import prn, block
 
 
 class Toccup:
@@ -23,7 +21,7 @@ def mailtime():
     traf = 0
     s = ''
     for i in range(10):
-        bbs[i].time = bbs[i].mxtime
+        fido.bbs[i].time = fido.bbs[i].mxtime
         bbs[i].soft += randint(0, 150 * (bbs[i].modem + 1))
     for i in range(params.E):
         if params.D.day() == params.SD.day() and echoes[i].stat != 2 and echoes[i].izverg and not randint(0, 4):

@@ -1,20 +1,5 @@
 from datetime import datetime
-
-mofs = [
-    0,
-    31,
-    31 + 28,
-    31 + 28 + 31,
-    31 + 28 + 31 + 30,
-    31 + 28 + 31 + 30 + 31,
-    31 + 28 + 31 + 30 + 31 + 30,
-    31 + 28 + 31 + 30 + 31 + 30 + 31,
-    31 + 28 + 31 + 30 + 31 + 30 + 31 + 31,
-    31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30,
-    31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31,
-    31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30,
-]
-
+import fido_date
 
 class Date:
     def __init__(self, day=1, month=1, year=1990):
@@ -72,7 +57,7 @@ class Date:
 
     def days(self):
         y = self.year_()
-        return self.day() + mofs[self.month() - 1] + y * 365 + (y + 3) // 4 + (
+        return self.day() + fido_date.mofs[self.month() - 1] + y * 365 + (y + 3) // 4 + (
             0 if y % 4 != 0 else (1 if self.month() > 2 else 0))
 
     def __sub__(self, d):
@@ -109,7 +94,7 @@ class Date:
 
     def daysinmonth(self):
         x = self.month()
-        return 31 if x == 12 else (mofs[x] - mofs[x - 1])
+        return 31 if x == 12 else (fido_date.mofs[x] - fido_date.mofs[x - 1])
 
     @staticmethod
     def dstodate(days):
@@ -120,28 +105,137 @@ class Date:
             y -= 1
         d = days - d
         if y % 4 == 0:
-            if d == mofs[2] + 1:
+            if d == fido_date.mofs[2] + 1:
                 dt.setmonth(2)
                 dt.setday(29)
                 return dt.date
-            elif d > mofs[2]:
+            elif d > fido_date.mofs[2]:
                 d -= 1
-        if d > mofs[11]:
+        if d > fido_date.mofs[11]:
             k = 11
         else:
             i = 0
             j = 11
             while j > i + 1:
                 k = (i + j) // 2
-                if d > mofs[k]:
+                if d > fido_date.mofs[k]:
                     i = k
                 else:
                     j = k
             k = i
         dt.setmonth(k + 1)
-        dt.setday(d - mofs[k])
+        dt.setday(d - fido_date.mofs[k])
         dt.setyear(y + 1990)
         return dt.date
+
+
+qstns = [
+    {"qstn": "Каково время ZMH зоны 2?",
+     "ans": ["2:30 - 3:30 UTC", "3:30 - 4:30 UTC", "5:30-6:30 московского времени"],
+     "mark": 0,
+     "correct": 0},
+    {"qstn": "Что обязан делать нод?",
+     "ans": ["Набирать поинтов", "Поддерживать ZMH", "Раздавать файлэхи"],
+     "mark": 0,
+     "correct": 1},
+    {"qstn": "Что означают цифры 5020 в адресе 2:5020/1402?",
+     "ans": ["Номер зоны", "Номер статьи УК", "Номер сети"],
+     "mark": 0,
+     "correct": 2},
+    {"qstn": "Вправе ли нод просматривать нетмэйл, идущий через его узел?",
+     "ans": ["Да", "Нет", "Не только просматривать, но и изменять"],
+     "mark": 0,
+     "correct": 0},
+    {"qstn": "Для чего предназначен ZMH?",
+     "ans": ["Для работы ББС", "Для пересылки нетмэйла", "Для отдыха сисопа"],
+     "mark": 0,
+     "correct": 1},
+    {"qstn": "Какова плата за подключение к ФИДО?",
+     "ans": ["$50", "3 бутылки пива", "Подключение бесплатное"],
+     "mark": 0,
+     "correct": 2},
+    {"qstn": "Кто осуществляет управление сетью?",
+     "ans": ["Координатор", "Администратор", "Модератор"],
+     "mark": 0,
+     "correct": 0},
+    {"qstn": "Каким образом получает должность Координатор Зоны?",
+     "ans": ["Жеребьевкой", "Голосованием", "По наследству"],
+     "mark": 0,
+     "correct": 1},
+    {"qstn": "При возникновении конфликта с другим сисопом первым делом надо:",
+     "ans": ["Подать жалобу сетевому координатору", "Подать в суд", "Попытаться решить конфликт нетмэйлом"],
+     "mark": 0,
+     "correct": 2}
+]
+
+ndreq = [
+    {"str": "Ваше имя", "mark": 0, "correct": 1},
+    {"str": "Возраст", "mark": 0, "correct": 0},
+    {"str": "Пол", "mark": 0, "correct": 0},
+    {"str": "Семейное положение", "mark": 0, "correct": 0},
+    {"str": "Город и страна, где расположена стация", "mark": 0, "correct": 1},
+    {"str": "Домашний адрес", "mark": 0, "correct": 0},
+    {"str": "Номер голосового телефона", "mark": 0, "correct": 1},
+    {"str": "Место работы", "mark": 0, "correct": 0},
+    {"str": "Годовой доход", "mark": 0, "correct": 0},
+    {"str": "Образование", "mark": 0, "correct": 0},
+    {"str": "Номер модемного телефона", "mark": 0, "correct": 1},
+    {"str": "Название вашей станции", "mark": 0, "correct": 1},
+    {"str": "Ваш компьютер", "mark": 0, "correct": 0},
+    {"str": "Ваш модем", "mark": 0, "correct": 1},
+    {"str": "Стаж работы с компьютером", "mark": 0, "correct": 0},
+    {"str": "Время работы вашей станции", "mark": 0, "correct": 1},
+    {"str": "Национальность", "mark": 0, "correct": 0},
+    {"str": "Партийная принадлежность", "mark": 0, "correct": 0},
+    {"str": "BPS вашего модема", "mark": 0, "correct": 1},
+    {"str": "Каким мэйлером пользуетесь", "mark": 0, "correct": 1},
+    {"str": "Привлекались ли к уголовной ответственности", "mark": 0, "correct": 0}
+]
+
+status = ["Юзер", "Поинт", "Нод", "NC"]
+profn = ["---", "Программирование", "Железо", "Торговля/менеджмент", None]
+stper = ["СЕССИЯ!", "Семестр", "Каникулы"]
+bps = [2400, 9600, 14400, 21600, 28800, 33600]
+comp = ["286", "386DX40", "486DX2/66", "486DX100", "Pentium-133", "Pentium-166", "Pentium Pro 200"]
+hd = [20, 40, 120, 540, 850, 1200, 2500]  # Объемы жесткого диска в МБ
+mprice = [5, 50, 100, 180, 240, 350]  # Цены на модем в $
+cprice = [45, 140, 350, 550, 800, 1000, 2300]  # Цены на компьютеры в $
+hprice = [5, 10, 40, 80, 120, 200, 300]  # Цены на HDD, в $
+pref = "MO."
+echoname = ["NETMAIL", "LOCAL.PVT", "*POINT", "PVT.EXCH.COMPUTER", "PVT.EXCH.BLACK.LOG",
+            "RU.ANEKDOT", "*JOB", "VERY.COOL", "SU.HARDW", "SU.SOFTW", "файлэхи",
+            None, None, None, None, None, None]
+echodescr = ["Личная почта", "Локалка", "Поинтовые дела", "Покупка/продажа железа", "Что у кого стоит покупать",
+             "Анекдоты", "Устройство на работу", "Весьма полезная эха", "Тонкости железа", "Программирование",
+             None, "Моя крутая эха #1            ", "Моя крутая эха #2            ", "Моя крутая эха #3            ",
+             "Моя крутая эха #4            ", "Моя крутая эха #5            "]
+bbsnames = ["Format complete", "Ctrl-Alt-Del", "Fatal error", "Exception 13", "NO CARRIER", "Lamer Hunter",
+            "Windows Must Die", "Beer Club", "Mailoman's", "Crazy Gamers", None, "                  "]
+cityname = [None] * 23
+cities = [
+    {"name": "Москва", "pref": "MO.", "frnds": 0, "fr": 0},
+    {"name": "Санкт-Петербург", "pref": "SPB.", "frnds": 0, "fr": 0},
+    {"name": "Владивосток", "pref": "VL.", "frnds": 0, "fr": 0},
+    {"name": "Днепропетровск", "pref": "DN.", "frnds": 0, "fr": 0},
+    {"name": "Донецк", "pref": "DONBASS.", "frnds": 0, "fr": 0},
+    {"name": "Екатеринбург", "pref": "MU.", "frnds": 0, "fr": 0},
+    {"name": "Иркутск", "pref": "ESIB.", "frnds": 0, "fr": 0},
+    {"name": "Калуга", "pref": "KLG.", "frnds": 0, "fr": 0},
+    {"name": "Киев", "pref": "KIEV.", "frnds": 0, "fr": 0},
+    {"name": "Краснодар", "pref": "KR.", "frnds": 0, "fr": 0},
+    {"name": "Красноярск", "pref": "KRS.", "frnds": 0, "fr": 0},
+    {"name": "Луганск", "pref": "LUG.", "frnds": 0, "fr": 0},
+    {"name": "Нижний Тагил", "pref": "NT.", "frnds": 0, "fr": 0},
+    {"name": "Новокузнецк", "pref": "NKZ.", "frnds": 0, "fr": 0},
+    {"name": "Новосибирск", "pref": "NSK.", "frnds": 0, "fr": 0},
+    {"name": "Пермь", "pref": "PERM.", "frnds": 0, "fr": 0},
+    {"name": "Псков", "pref": "PSKOV.", "frnds": 0, "fr": 0},
+    {"name": "Рязань", "pref": "RZ.", "frnds": 0, "fr": 0},
+    {"name": "Томск", "pref": "TSK.", "frnds": 0, "fr": 0},
+    {"name": "Уфа", "pref": "UFA.", "frnds": 0, "fr": 0},
+    {"name": "Харьков", "pref": "KHARKOV.", "frnds": 0, "fr": 0},
+    {"name": "Челябинск", "pref": "CHEL.", "frnds": 0, "fr": 0}
+]
 
 
 def getcurdate():
@@ -151,6 +245,8 @@ def getcurdate():
     y = now.year
     d = Date(d, m, y)
     return d
+
+
 
 style = ["Read-only", "Неактивный", "Активный", "Flame", None]
 prob = [0, 1, 4, 8]  # вероятность [+] в % как f(Style) при izverg==1

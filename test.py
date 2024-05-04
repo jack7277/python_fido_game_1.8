@@ -1,4 +1,5 @@
 import random
 
-a = random.randint(0, 1)
-print(a)
+c = '2'
+d = int(c) - 1
+print()

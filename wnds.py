@@ -1,19 +1,40 @@
 # word = int
 # byte = int
-
+from fido import scrs
 
 scr = bytearray(b'\x00' * 0xB8000000)
 scrw = bytearray(b'\x00' * 0xB8000000)
 low = bytearray(b'\x00' * 0x00000000)
-
-Border = [218, 196, 191, 179, 217, 192, 201, 205, 187, 186, 188, 200, 214, 196, 183, 186, 189, 211, 213, 205, 184, 179, 190, 212]
-
+Border = [218, 196, 191, 179, 217, 192, 201, 205, 187, 186, 188, 200, 214, 196, 183, 186, 189, 211, 213, 205, 184, 179,
+          190, 212]
 SSB = 0
 DDB = 6
 SDB = 12
 DSB = 18
-
 BRDR = SSB
+
+
+def fidomess(from_, to, subj, text, y=5, x=8):
+    i = 0 # todo debug
+    # q = openbox(y, x, y + 16, x + 60, 0x1E)
+    prnc(y + 1, x + 1, "From : ", 0x13)
+    prnc(y + 1, x + 8, from_, 0x13)
+    prnc(y + 2, x + 1, "To   : ", 0x13)
+    prnc(y + 2, x + 8, to, 0x13)
+    prnc(y + 3, x + 1, "Subj : ", 0x13)
+    prnc(y + 3, x + 8, subj, 0x13)
+    for i in range(x + 1, x + 60):
+        scrs(y + 4, i, '─')
+    scrs(y + 4, i, 195)
+    scrs(y + 4, 60 + x, 180)
+    prn(y + 5, x + 1, "Hi ")
+    i = wrtword(y + 5, x + 4, to)
+    scrs(y + 5, x + 4 + i, '!')
+    i = write(y + 7, x + 1, text)
+    wrtword(y + 8 + i, x + 1, from_)
+    anykey()
+    # closebox(y, x, y + 16, x + 60, q)
+
 
 def up(c):
     if 'a' <= chr(c) <= 'z' or 160 <= c <= 175:
@@ -23,18 +44,19 @@ def up(c):
     else:
         return c
 
+
 def prn(y, x, st):
     print(st)
-    # if st is None:
-    #     return
-    # i = 0
-    # while st[i] != 0:
-    #     scr[y * 160 + ((x + i) << 1)] = ord(st[i])
-    #     i += 1
+
+
+def message(s, c, wait=1, y=0xFF, x=0):
+    prn(0, 0, s)
+
 
 def chatr(y, x, l, c):
     for i in range(l):
         scr[y * 160 + 1 + ((x + i) << 1)] = c
+
 
 def wrt(y, x, st, n):
     i = 0
@@ -42,12 +64,14 @@ def wrt(y, x, st, n):
         scr[y * 160 + ((x + i) << 1)] = st[i]
         i += 1
 
+
 def wrtword(y, x, st):
     i = 0
     while st[i] != 0 and st[i] != ' ':
         scr[y * 160 + ((x + i) << 1)] = ord(st[i])
         i += 1
     return i
+
 
 def write(y, x, s):
     print(s)
@@ -62,6 +86,7 @@ def write(y, x, s):
     #         i += 1
     #     s = s[1:]
     # return j - y + 1
+
 
 def writen(y, x, s, n):
     print(s)
@@ -78,6 +103,7 @@ def writen(y, x, s, n):
     #     k += 1
     # return k
 
+
 def prnc(y, x, st, c):
     # 1f - белые буквы на синем фоне
     # 0x74 - красные на сером, самый низ индекс 24
@@ -89,6 +115,7 @@ def prnc(y, x, st, c):
     #     scr[y * 160 + (x + i) * 2] = ord(st[i])
     #     scr[y * 160 + (x + i) * 2 + 1] = c
     #     i += 1
+
 
 def prncc(y, x, st, c):
     print(st)
@@ -108,11 +135,13 @@ def prncc(y, x, st, c):
     #         x += 1
     #     i += 1
 
+
 def clrbl(t, l, b, r, c1):
     for i in range(t, b + 1):
         for j in range(l, r + 1):
             scr[i * 160 + j * 2 + 1] = c1
             scr[i * 160 + j * 2] = 32
+
 
 def _box(t, l, b, r, c1, brdr):
     clrbl(t, l, b, r, c1)
@@ -132,8 +161,10 @@ def _box(t, l, b, r, c1, brdr):
     scr[b * 160 + l * 2] = Border[brdr + 5]
     scr[t * 160 + l * 2] = Border[brdr]
 
+
 def box(t, l, b, r, c):
     _box(t, l, b, r, c, BRDR)
+
 
 def openbox(t, l, b, r, c):
     # q = bytearray((b - t + 2) * (r - l + 3) * 2)
@@ -142,10 +173,12 @@ def openbox(t, l, b, r, c):
     # return q
     pass
 
+
 def closebox(t, l, b, r, q):
     # puttext(l + 1, t + 1, r + 3, b + 2, q)
     # del q
     pass
+
 
 def block(t, b, c):
     return
@@ -153,6 +186,7 @@ def block(t, b, c):
     # for j in range(t, b + 1):
     #     for i in range(80):
     #         scrw[j * 80 + i] = w
+
 
 def _menu(t, l, b, r, n, c1, c2, ar, hdr, h, cl, menufunc):
     q = openbox(t, l, b, r, c1)
@@ -208,6 +242,7 @@ def _menu(t, l, b, r, n, c1, c2, ar, hdr, h, cl, menufunc):
                     scr[(t + sel) * 160 + i * 2 + 1] = c1
                 sel = 1 if sel == n else sel + 1
 
+
 def menu(t, l, c1, c2, ar, hdr, h):
     n = 0
     s = 0
@@ -217,6 +252,7 @@ def menu(t, l, c1, c2, ar, hdr, h):
     s = max(s, len(hdr))
     return _menu(t, l, t + n + 1, l + s + 3, n, c1, c2, ar, hdr, h, 1, None)
 
+
 def menuf(t, l, c1, c2, ar, hdr, h, func):
     n = 0
     s = 0
@@ -225,6 +261,7 @@ def menuf(t, l, c1, c2, ar, hdr, h, func):
         n += 1
     s = max(s, len(hdr))
     return _menu(t, l, t + n + 1, l + s + 3, n, c1, c2, ar, hdr, h, 1, func)
+
 
 def menuncl(t, l, c1, c2, ar, hdr, h):
     n = 0

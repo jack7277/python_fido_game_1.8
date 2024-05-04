@@ -7,26 +7,17 @@ e-mail: comte@au.ru
 """
 import sys
 import time
+from init import *
 from random import random
 from typing import Union
 
+import fido_date
 import params
-from date import *
-from echo import Echo
+from params import *
+from echo import *
+from fido_random import random_, _rnd, lrandom
+from person import *
 from wnds import *
-from wnds import _box
-
-
-def _rnd(x):
-    return int((random.randint(0, x) * x) / (random.randint(0, 0x7fff) + 1))
-
-
-def lrandom(x):
-    return x if x == 0 else (random.randint(0, 0xFFFF) * random.randint(0, 0xFFFF)) % x
-
-
-def random_(x):
-    return -random.randint(0, -x) if x < 0 else random.randint(0, x)
 
 
 def upcase(c):
@@ -54,206 +45,17 @@ class Question:
         self.mark = mark
         self.correct = correct
 
-
-qstns = [
-    {"qstn": "Каково время ZMH зоны 2?",
-     "ans": ["2:30 - 3:30 UTC", "3:30 - 4:30 UTC", "5:30-6:30 московского времени"],
-     "mark": 0,
-     "correct": 0},
-    {"qstn": "Что обязан делать нод?",
-     "ans": ["Набирать поинтов", "Поддерживать ZMH", "Раздавать файлэхи"],
-     "mark": 0,
-     "correct": 1},
-    {"qstn": "Что означают цифры 5020 в адресе 2:5020/1402?",
-     "ans": ["Номер зоны", "Номер статьи УК", "Номер сети"],
-     "mark": 0,
-     "correct": 2},
-    {"qstn": "Вправе ли нод просматривать нетмэйл, идущий через его узел?",
-     "ans": ["Да", "Нет", "Не только просматривать, но и изменять"],
-     "mark": 0,
-     "correct": 0},
-    {"qstn": "Для чего предназначен ZMH?",
-     "ans": ["Для работы ББС", "Для пересылки нетмэйла", "Для отдыха сисопа"],
-     "mark": 0,
-     "correct": 1},
-    {"qstn": "Какова плата за подключение к ФИДО?",
-     "ans": ["$50", "3 бутылки пива", "Подключение бесплатное"],
-     "mark": 0,
-     "correct": 2},
-    {"qstn": "Кто осуществляет управление сетью?",
-     "ans": ["Координатор", "Администратор", "Модератор"],
-     "mark": 0,
-     "correct": 0},
-    {"qstn": "Каким образом получает должность Координатор Зоны?",
-     "ans": ["Жеребьевкой", "Голосованием", "По наследству"],
-     "mark": 0,
-     "correct": 1},
-    {"qstn": "При возникновении конфликта с другим сисопом первым делом надо:",
-     "ans": ["Подать жалобу сетевому координатору", "Подать в суд", "Попытаться решить конфликт нетмэйлом"],
-     "mark": 0,
-     "correct": 2}
-]
-
-ndreq = [
-    {"str": "Ваше имя", "mark": 0, "correct": 1},
-    {"str": "Возраст", "mark": 0, "correct": 0},
-    {"str": "Пол", "mark": 0, "correct": 0},
-    {"str": "Семейное положение", "mark": 0, "correct": 0},
-    {"str": "Город и страна, где расположена стация", "mark": 0, "correct": 1},
-    {"str": "Домашний адрес", "mark": 0, "correct": 0},
-    {"str": "Номер голосового телефона", "mark": 0, "correct": 1},
-    {"str": "Место работы", "mark": 0, "correct": 0},
-    {"str": "Годовой доход", "mark": 0, "correct": 0},
-    {"str": "Образование", "mark": 0, "correct": 0},
-    {"str": "Номер модемного телефона", "mark": 0, "correct": 1},
-    {"str": "Название вашей станции", "mark": 0, "correct": 1},
-    {"str": "Ваш компьютер", "mark": 0, "correct": 0},
-    {"str": "Ваш модем", "mark": 0, "correct": 1},
-    {"str": "Стаж работы с компьютером", "mark": 0, "correct": 0},
-    {"str": "Время работы вашей станции", "mark": 0, "correct": 1},
-    {"str": "Национальность", "mark": 0, "correct": 0},
-    {"str": "Партийная принадлежность", "mark": 0, "correct": 0},
-    {"str": "BPS вашего модема", "mark": 0, "correct": 1},
-    {"str": "Каким мэйлером пользуетесь", "mark": 0, "correct": 1},
-    {"str": "Привлекались ли к уголовной ответственности", "mark": 0, "correct": 0}
-]
-
-import os
-
-status = ["Юзер", "Поинт", "Нод", "NC"]
-profn = ["---", "Программирование", "Железо", "Торговля/менеджмент", None]
-stper = ["СЕССИЯ!", "Семестр", "Каникулы"]
-bps = [2400, 9600, 14400, 21600, 28800, 33600]
-comp = ["286", "386DX40", "486DX2/66", "486DX100", "Pentium-133", "Pentium-166", "Pentium Pro 200"]
-hd = [20, 40, 120, 540, 850, 1200, 2500]  # Объемы жесткого диска в МБ
-mprice = [5, 50, 100, 180, 240, 350]  # Цены на модем в $
-cprice = [45, 140, 350, 550, 800, 1000, 2300]  # Цены на компьютеры в $
-hprice = [5, 10, 40, 80, 120, 200, 300]  # Цены на HDD, в $
-pref = "MO."
-echoname = ["NETMAIL", "LOCAL.PVT", "*POINT", "PVT.EXCH.COMPUTER", "PVT.EXCH.BLACK.LOG",
-            "RU.ANEKDOT", "*JOB", "VERY.COOL", "SU.HARDW", "SU.SOFTW", "файлэхи",
-            None, None, None, None, None, None]
-echodescr = ["Личная почта", "Локалка", "Поинтовые дела", "Покупка/продажа железа", "Что у кого стоит покупать",
-             "Анекдоты", "Устройство на работу", "Весьма полезная эха", "Тонкости железа", "Программирование",
-             None, "Моя крутая эха #1            ", "Моя крутая эха #2            ", "Моя крутая эха #3            ",
-             "Моя крутая эха #4            ", "Моя крутая эха #5            "]
-bbsnames = ["Format complete", "Ctrl-Alt-Del", "Fatal error", "Exception 13", "NO CARRIER", "Lamer Hunter",
-            "Windows Must Die", "Beer Club", "Mailoman's", "Crazy Gamers", None, "                  "]
-cityname = [None] * 23
-cities = [
-    {"name": "Москва", "pref": "MO.", "frnds": 0, "fr": 0},
-    {"name": "Санкт-Петербург", "pref": "SPB.", "frnds": 0, "fr": 0},
-    {"name": "Владивосток", "pref": "VL.", "frnds": 0, "fr": 0},
-    {"name": "Днепропетровск", "pref": "DN.", "frnds": 0, "fr": 0},
-    {"name": "Донецк", "pref": "DONBASS.", "frnds": 0, "fr": 0},
-    {"name": "Екатеринбург", "pref": "MU.", "frnds": 0, "fr": 0},
-    {"name": "Иркутск", "pref": "ESIB.", "frnds": 0, "fr": 0},
-    {"name": "Калуга", "pref": "KLG.", "frnds": 0, "fr": 0},
-    {"name": "Киев", "pref": "KIEV.", "frnds": 0, "fr": 0},
-    {"name": "Краснодар", "pref": "KR.", "frnds": 0, "fr": 0},
-    {"name": "Красноярск", "pref": "KRS.", "frnds": 0, "fr": 0},
-    {"name": "Луганск", "pref": "LUG.", "frnds": 0, "fr": 0},
-    {"name": "Нижний Тагил", "pref": "NT.", "frnds": 0, "fr": 0},
-    {"name": "Новокузнецк", "pref": "NKZ.", "frnds": 0, "fr": 0},
-    {"name": "Новосибирск", "pref": "NSK.", "frnds": 0, "fr": 0},
-    {"name": "Пермь", "pref": "PERM.", "frnds": 0, "fr": 0},
-    {"name": "Псков", "pref": "PSKOV.", "frnds": 0, "fr": 0},
-    {"name": "Рязань", "pref": "RZ.", "frnds": 0, "fr": 0},
-    {"name": "Томск", "pref": "TSK.", "frnds": 0, "fr": 0},
-    {"name": "Уфа", "pref": "UFA.", "frnds": 0, "fr": 0},
-    {"name": "Харьков", "pref": "KHARKOV.", "frnds": 0, "fr": 0},
-    {"name": "Челябинск", "pref": "CHEL.", "frnds": 0, "fr": 0}
-]
-
-class Person:
-    def __init__(self):
-        self.name = ""  # salloc(31) длина 31 символ
-        self.status = 0
-        self.sysop = 0
-        self.modem = 0
-        self.comp = 0
-        self.hd = 0
-        self.mreli = 32767
-        self.creli = 32767
-        self.hreli = 32767
-        self.income = 0
-        self.expens = -150
-        self.spay = 0
-        self.money = 300
-        self.debt = 0
-        self.soft = 0
-        self.os = 0
-        self.osreq = 0
-        self.hdspace = 20 * 1024
-        self.virus = 0
-        self.ftime = 20 * 60
-        self.wtime = 0
-        self.wdays = 0
-        self.sdays = -1
-        self.wprof = 0
-        self.sprof = 0
-        self.mood = 0
-        self.tired = 0
-        self.reput = 0
-        self.moder = 0
-        self.points = 0
-        self.friends = 0
-        self.antiv = params.Date()
-        self.wdate = params.Date()
-        self.grad = params.Date()
-        self.tries = 0
-        self.army = 0
-        self.intens = 0
-        self.mark = 0.0
-        self.echo = [0] * 5
-        self.skill = [0, 100, 0, 0]  # 0,prg,hrd,trd
-
-    def reput_(self):
-        return self.reput + self.skill[1] + self.skill[2] + self.skill[3]
+# echoes = [Echo(you) for _ in range(LE+6)]
 
 
-you = Person()
 
 
-# echoes = [Echo(you) for _ in range(params.LE+6)]
-
-echoes = []
-for i in range(0, params.LE + 6):
-    echoes.append(Echo(you))
-
-import echo
-
-echoes[1] = echo.Local()
-echoes[2] = echo.Point()
-echoes[3] = echo.Exch()
-echoes[4] = echo.Bllog()
-echoes[5] = echo.Ruanekdot()
-echoes[6] = echo.Job()
-echoes[7] = echo.Vcool()
-echoes[8] = echo.Hardw()
-echoes[9] = echo.Softw()
-echoes[10] = echo.Fecho()
-
-
-def echo_time(i):
-    k1 = 1 if echoes[i].stat > 2 else echoes[i].stat
-    k2 = 1 if you.os > 0 else 1.3
-    return round(echoes[i].traf * echoes[i].trafk * (params.Style + 1) * k1 * (11.0 - you.comp / 1.5) * k2 / 10.0)
-
-# def echtime(i, echoes, Style, you):
-#     return round(echoes[i].traf * echoes[i].trafk * (Style + 1) * (1 if echoes[i].stat > 2 else echoes[i].stat) * (
-#                 11.0 - you.comp / 1.5) * (1 if you.os > 0 else 1.3) / 10.0)
-
-def echtime1(i, n):
-    t = round((n) * 2 * echoes[i].trafk * (params.Style + 1) * (1 if echoes[i].stat > 2 else echoes[i].stat) * (11.0 - you.comp / 1.5) * (1 if you.os > 0 else 1.3) / 10.0)
-    if not t and n:
-        t = 1
-    return t
 
 def delecho(n):
     i = 0
-    if n > params.LE:
-        params.E -= 1
+    if n > LE:
+        from params import E
+        E -= 1
         you.moder -= 1
         echoes[n].name = ''
     del echoes[n]
@@ -262,30 +64,28 @@ def delecho(n):
         echoname[i] = echoname[i + 1]
         echoes[i].name = echoname[i]
         echodescr[i] = echodescr[i + 1]
-    if n > params.LE:
+    if n > LE:
         echoname[params.E] = None
+
 
 def final(st):
     s = ' ' * 1024
     ar = [0] * (80 * 24)
-    s = (f"{st}{params.D - params.SD} {end(params.D - params.SD, end2)}. За это время вы потратили\n"
-         f"на почту {params.alltime // (24 * 60)} сут. {(params.alltime % (24 * 60)) // 60} ч. {params.alltime % (24 * 60) % 60} мин. чистого времени, получили {params.pluses} плюс{end(params.pluses)}\n"
-         f"в конференциях, сменили {params.newm} модем{end(params.newm)} и {params.newc} компьютер{end(params.newc)}.")
-    block(1, 23, 0xF)
+    
+    s = (f"{st}{D - SD} {end(D - SD, end2)}. За это время вы потратили\n"
+         f"на почту {alltime // (24 * 60)} сут. {(alltime % (24 * 60)) // 60} ч. {alltime % (24 * 60) % 60} мин. чистого времени, получили {pluses} плюс{end(pluses)}\n"
+         f"в конференциях, сменили {newm} модем{end(newm)} и {newc} компьютер{end(newc)}.")
     showstat(1, 22, 0x30)
-    scrw[0x1000:0x1000 + 4000] = scrw[:4000]
-    page(1)
     ar = [0] * (80 * 24)
-    block(1, 24, 0x1F)
     message(s, 0x1F, 0)
-    prnc(24, 0, "                              Нажмите клавишу \"Anykey\"                         ", 0x74)
+    prnc(24, 0, "Нажмите клавишу \"Anykey\"", 0x74)
     i = 80 * 24
     while i:
         j = random.randint(0, 80 * 24 - 1)
         if ar[j] == 0:
             i -= 1
             ar[j] = 1
-            scrw[j + 0x800 + 80] = scrw[j + 80]
+            # scrw[j + 0x800 + 80] = scrw[j + 80]
             delay(20)
     anykey()
     page(0)
@@ -301,6 +101,7 @@ def max(a, b):
 
 
 def getch():
+    import os
     if os.name == 'nt':
         import msvcrt
         return msvcrt.getch().decode()
@@ -336,52 +137,32 @@ def round(f: float) -> int:
 
 def dstodate(days: word) -> word:
     d, j, i, k, y = 0, 0, 0, 0, 0
-    dt = params.Date()
+    dt = Date()
     y = int(days // 365.25)
     while (y * 365 + ((y + 3) >> 2)) >= days:
         y -= 1
     d = days - d
     if not (y & 0x0003):  # for leap-year
-        if d == mofs[2] + 1:  # 29 Feb
+        if d == fido_date.mofs[2] + 1:  # 29 Feb
             dt.setmonth(2)
             dt.setday(29)
-        elif d > mofs[2]:
+        elif d > fido_date.mofs[2]:
             d -= 1
-    if d > mofs[11]:
+    if d > fido_date.mofs[11]:
         k = 11
     else:
         i, j = 0, 11
         while j > i + 1:
             k = (i + j) >> 1
-            if d > mofs[k]:
+            if d > fido_date.mofs[k]:
                 i = k
             else:
                 j = k
         k = i
     dt.setmonth(k + 1)
-    dt.setday(d - mofs[k])
+    dt.setday(d - fido_date.mofs[k])
     dt.setyear(y + 1990)
     return dt.date
-
-
-class BBS:
-    def __init__(self):
-        self.name = None
-        self.mxtime = 0  # -1 means twit, 0 - 1st time
-        self.time = 0  # current time
-        self.U = 0  # upload
-        self.D = 0  # download
-        self.soft = 0  # total not-your soft
-        self.modem = 0
-        self.down = 0
-        LE = 10
-        self.ech = [0] * (LE - 2)
-
-
-bbs = [BBS() for _ in range(10)]
-
-
-
 
 
 Cursor = 0
@@ -421,100 +202,9 @@ def scrsa(y, x, w):
 
 
 def anykey():
-    q = ''
-    # gettext(1,25,80,25,q)
-    prnc(24, 0, "                              Нажмите клавишу \"Anykey\"                         ", 0x74)
-    # if not getch():
-    #     getch()
-    # puttext(1,25,80,25,q)
-    # free(q)
+    prnc(24, 0, "Нажмите клавишу \"Anykey\"", 0x74)
 
 
-# def viewstr(s,t=2,l=5,h=20,w=70, col=0x70):
-#     p=0
-#     p1=0
-#     i=0
-#     q=openbox(t,l,t+h,l+w,col)
-#     show:
-#     clrbl(t+1,l+2,t+h-1,l+w-1,col)
-#     p1=writen(t+1,l+2,s+p,h-1)
-#     while True:
-#         c=getch()
-#         if c==27:
-#             break
-#         elif c==0:
-#             c=getch()
-#             if c==73:
-#                 for i in range(h-1):
-#                     if not p:
-#                         break
-#                     p-=1
-#                     while p:
-#                         p-=1
-#                         if s[p-1]=='\n':
-#                             break
-#                 goto show
-#             elif c==72:
-#                 if not p:
-#                     break
-#                 p-=1
-#                 while p:
-#                     p-=1
-#                     if s[p-1]=='\n':
-#                         break
-#                 goto show
-#             elif c==81:
-#                 for i in range(h-1):
-#                     while s[p]:
-#                         p+=1
-#                         if s[p-1]=='\n':
-#                             break
-#                 goto show
-#             elif c==80:
-#                 while s[p]:
-#                     p+=1
-#                     if s[p-1]=='\n':
-#                         break
-#                 goto show
-#         elif c==13:
-#             d=r-*n
-#             *n=r
-#             return d
-#     closebox(t,l,t+h,l+w,q)
-
-def message(s, c, wait=1, y=0xFF, x=0):
-    prn(0, 0, s)
-    # i=0
-    # k=0
-    # l=0
-    # n=1
-    # q=None
-    # while s[i]:
-    #     if s[i]=='\n':
-    #         if k>l:
-    #             l=k
-    #         k=0
-    #         n+=1
-    #     else:
-    #         k+=1
-    #     s += 1
-    # if k>l:
-    #     l=k
-    # if y==0xFF:
-    #     y=(25-n) >> 1
-    #     x=(76-l) >> 1
-    # q=openbox(y,x,y+n+1,x+l+3,c)
-    # write(y+1,x+2,s)
-    # if Log:
-    #     prn(0,0, "%d.%d.%d\n%s\n",D.day(),D.month(),D.year(),s)
-    # if wait==1:
-    #     anykey()
-    #     closebox(y,x,y+n+1,x+l+3,q)
-    # elif wait==0:
-    #     pass  # free(q)
-    # else:
-    #     delay(1000)
-    #     closebox(y,x,y+n+1,x+l+3,q)
 
 
 def nmbrscrl(n, y, x, mx=99, mn=0, dn=1):
@@ -562,7 +252,7 @@ def studper(D):
 
 
 
-def sttime(D, you):
+def sttime(D):
     if not you.spay:
         return 0
     elif you.spay < 0:
@@ -581,7 +271,7 @@ dtm = ""
 
 def showtime():
     prn(0, 0,
-        f"{week[params.D.weekday()]}, {params.D.day()}.{params.D.month()}.{params.D.year()}  Осталось {params.Time / 60} ч. {params.Time % 60} мин. ")
+        f"{week[D.weekday()]}, {D.day()}.{D.month()}.{D.year()}  Осталось {params.Time / 60} ч. {params.Time % 60} мин. ")
     prn(0, 32, dtm)
 
 
@@ -614,7 +304,8 @@ def showstat(y=1, x=22, c=0x30, c2=0x3F):
             "Ж|-))", "Ж|-)))", "Ж|-)))"]
     s = ""
     i = 0
-    _box(y, x, y + 17 + you.sysop + you.moder, x + 55, c, SDB)
+    import wnds
+    wnds._box(y, x, y + 17 + you.sysop + you.moder, x + 55, c, SDB)
     prnc(y + 1, x + 2, you.name, c2)
     prn(y + 2, x + 2, f"Статус: {status[you.status]}")
     if you.status > 1:
@@ -623,14 +314,14 @@ def showstat(y=1, x=22, c=0x30, c2=0x3F):
     if you.sysop:
         y += 1
         prn(0,0,f"Сисоп %c%s BBS {bbsnames[11]}")
-        if params.Down or you.modem == 0xFF:
+        if Down or you.modem == 0xFF:
             prn(0, 0, f'{s + str(i)} (в дауне)')
         else:
             prn(0, 0, f'{s + str(i)} требует {round(75 * (you.modem + 1) * .1 + 10)} мин.в день')
         # prncc(y+2,x+2,s,c)
     for i in range(you.moder):
         prn(y + 3 + i, x + 3, "Модератор ")
-        prnc(y + 3 + i, x + 3 + 10, echoes[params.LE + 1 + i].name, c2)
+        prnc(y + 3 + i, x + 3 + 10, echoes[LE + 1 + i].name, c2)
     y += you.moder
     prn(0, 0, f"Репутация: {you.reput}")
     # prncc(y+3,x+2,s,c)
@@ -652,13 +343,13 @@ def showstat(y=1, x=22, c=0x30, c2=0x3F):
         prn(0, 0, f" {p} Ср.балл {you.mark}")
     # prncc(y+9,x+2,s,c)
     y += 4
-    wtime = sttime(params.D, you)
+    wtime = sttime(D)
     prn(0, 0, f"Время/сут.: {you.wtime / 60.0} Работа {wtime / 60.0} Учеба  Своб. {(you.ftime - wtime) / 60.0}")
     # prncc(y+6,x+2,s,c)
-    mem = params.os[you.os]['memory'] >> 10
-    prn(0, 0, f"ОC: {params.OSnames[you.os]} занимает {mem} МБ")
+    mem = os[you.os]['memory'] >> 10
+    prn(0, 0, f"ОC: {OSnames[you.os]} занимает {mem} МБ")
     if you.osreq:
-        prn(0, 0, f'{s + str(i)} Надо {params.OSnames[you.osreq]}')
+        prn(0, 0, f'{s + str(i)} Надо {OSnames[you.osreq]}')
     # prncc(y+7,x+2,s,c)
     prn(0, 0, f"{you.soft}К КРУТОГО СОФТА")
     if you.antiv:
@@ -686,6 +377,7 @@ class Memfile:
         self.tm = None
 
     def open(self, name, atr):
+        import os
         self.f = os.open(name, atr)
         if self.f == -1:
             return -1
@@ -716,6 +408,7 @@ class Memfile:
         return noteof
 
     def flush(self, closef=1):
+        import os
         os.lseek(self.f, -self.size, 1)
         os.write(self.f, self.buff)
         if closef:
@@ -726,6 +419,7 @@ M = Memfile()
 
 
 def code(name):
+    import os
     if M.open(name, os.O_RDWR) == -1:
         return 0
     s = bytearray(f"{M.tm ^ M.dt:04x}{~M.tm:04x}", 'utf-8')
@@ -736,11 +430,11 @@ def code(name):
 
 # def save(fname):
 #     f = os.open(fname, os.O_CREAT | os.O_WRONLY)
-#     os.write(f, params.D.Date)
-#     os.write(f, params.E)
+#     os.write(f, D.Date)
+#     os.write(f, E)
 #     os.write(f, you.status)
 #     os.write(f, bbs)
-#     for i in range(params.E):
+#     for i in range(E):
 #         os.write(f, echoes[i].stat)
 #         os.write(f, echoes[i].name)
 #         if echodescr[i] is not None:
@@ -758,7 +452,7 @@ def code(name):
 
 
 # def load():
-#     e1 = params.E
+#     e1 = E
 #     if not code("fido.dat"):
 #         return 0
 #     s = bytearray(30)
@@ -808,7 +502,7 @@ def yn(qst, ans=0, c1=0x70, c2=0xF):
     ll = max(ls + 4, 28)
     t = 10
     l = (78 - ll) >> 1
-    q = openbox(t, l, t + 5 + n, l + ll, c1)
+    # q = openbox(t, l, t + 5 + n, l + ll, c1)
     write(t + 2, l + 2, qst)
     if ans:
         s = ans
@@ -831,78 +525,13 @@ def yn(qst, ans=0, c1=0x70, c2=0xF):
                 s = 1
             else:
                 s += 1
-    closebox(t, l, t + 5 + n, l + ll, q)
+    # closebox(t, l, t + 5 + n, l + ll, q)
     return s == 1
-
-
-def chmood(dm):
-    you.mood += dm
-    if you.mood < 0:
-        block(1, 24, 0x4F)
-        message("                      Это конец!\n"
-                "В приступе тяжелой депрессии вы  разбили молотком модем,\n"
-                "выкинули из окна компьютер и повесились на сетевом шнуре.\n"
-                "                       RIP.", 0x4F)
-        quit(2)
-    if you.mood <= 10:
-        message(" Депрессия до добра не доводит!\n"
-                "Нужно срочно поднять настроение!", 0x4F)
-    elif you.mood > 150:
-        if you.mood - dm < 150:
-            message("Компьютер и модем - что еще человеку для счастья надо?", 0x1F)
-        you.mood = 150
-
-
-def chrep(dr, chrp=1):
-    you.reput += dr
-    if you.reput > 1024:
-        if you.reput - dr < 1024:
-            message("И слух о вас гремит по всей Сети великой...", 0x1F)
-        you.reput = 1024
-    elif dr < 0:
-        if you.status == 2:
-            if you.reput < 128:
-                if chrp:
-                    message("За особо раздражающее поведение вы лишены нодового адреса", 0x4F)
-                    you.status = 1
-                    maxpnt = you.points = 0
-                else:
-                    you.reput = 128
-        elif you.status == 1:
-            if you.reput < 32:
-                if chrp:
-                    message("За плохое поведение босс погнал вас из поинтов", 0x4F)
-                    you.status = 0
-                    # for i in range(params.LE + 1, E):
-                    #     del echoes[params.E - 1]
-                else:
-                    you.reput = 32
-        elif you.status == 0:
-            if you.reput < -8:
-                if chrp:
-                    # block(1, 24, 0x4F)
-                    message("Это ж кем надо быть, чтоб ни один сисоп не хотел иметь с вами дела!\n"
-                            "         Вообще таким, как вы, надо винт форматировать... \n"
-                            "                    Идите-ка отсюда, пока целы!", 0x4F)
-                    quit(1)
-                else:
-                    you.reput = -8
-
-
-def incsoft(ds, chrp=1):
-    mem1 = you.soft + params.os[you.os]['memory'] + ds
-    if mem1 > you.hdspace:
-        ds = you.hdspace - you.soft - params.os[you.os]['memory']
-    if not ds:
-        return 0
-    chrep(random_(ds * you.status / 512) / 2, chrp)
-    you.soft += ds
-    return ds
 
 
 def OSinfo(n):
     n -= 1
-    s = f"Install time {params.os[n]['memory']} min.\nSpace required {params.os[n]['memory'] >> 10}M"
+    s = f"Install time {os[n]['memory']} min.\nSpace required {os[n]['memory'] >> 10}M"
     write(14, 2, s)
 
 
@@ -914,28 +543,28 @@ def instOS(n=0):
     res = 0
     Time = 30  # ?????? тут этого не должно быть
     if not n:
-        q = openbox(13, 0, 16, 22, 0x30)
-        o = menuf(12, 25, 0x70, 0x0F, params.OSnames, "Install", 1, OSinfo)
-        closebox(13, 0, 16, 22, q)
+        # q = openbox(13, 0, 16, 22, 0x30)
+        o = menuf(12, 25, 0x70, 0x0F, OSnames, "Install", 1, OSinfo)
+        # closebox(13, 0, 16, 22, q)
     else:
         o = n + 1
     while (1):
         if o:
             o -= 1
-            if params.os[o]['memory'] > Time:
+            if os[o]['memory'] > Time:
                 message("Сегодня не успеем...", 0x4F)
                 break
-            if params.os[o]['mincomp'] > you.comp:
+            if os[o]['mincomp'] > you.comp:
                 message("У вас слишком хилый компьютер!", 0x4F)
                 break
-            if you.soft + params.os[o]['memory'] > you.hdspace:
+            if you.soft + os[o]['memory'] > you.hdspace:
                 message("Не хватает места на винте!", 0x4F)
                 break
-            q = openbox(y, x, y + 6, x + 40, 0x0F)
-            prn(0, 0, f"Installing {params.OSnames[o]}...")
+            # q = openbox(y, x, y + 6, x + 40, 0x0F)
+            prn(0, 0, f"Installing {OSnames[o]}...")
             # prn(y + 1, x + 1, s)
-            for i in range(1, params.os[o]['itime'] + 1):
-                percent = 100 if i == params.os[o]['itime'] else i * 100 / params.os[o]['itime']
+            for i in range(1, os[o]['itime'] + 1):
+                percent = 100 if i == os[o]['itime'] else i * 100 / os[o]['itime']
                 prn(0, 0, f"{percent} complete")
                 s = ''
                 prn(y + 3, x + 2, s)
@@ -945,11 +574,11 @@ def instOS(n=0):
                     message("Глюки!!! Придется переинсталлировать заново...", 0x4F)
                     break
                 delay(400)
-            closebox(y, x, y + 6, x + 40, q)
+            # closebox(y, x, y + 6, x + 40, q)
             you.os = o
             res = 1
             if you.osreq:
-                you.wdate = params.D + 6
+                you.wdate = D + 6
     return res
 
 
@@ -1024,21 +653,21 @@ def joffer(wait=1):
                               "    Теперь вам не до ФИДО. Ваша дальнейшая биография может быть\n"
                               "       не менее интересной, но это уже совсем другая история...\n \n"
                               "Ваша фидошная карьера продолжалась ")
-            q = openbox(10, 11, 12, 45, 0x70)
+            # q = openbox(10, 11, 12, 45, 0x70)
             echoes[6].read = 0
             s = f"Предложения работы в {echoes[6].name}"
             prn(11, 12 + len(pref) // 2, s)
             n = int(6 * random() + 1)
             for k in range(n):
                 vars[k][2] = int(3 * random() + 1)
-                vars[k][1] = int(2 * 60 + (12 if params.Stable else 20) * random() * 30)
+                vars[k][1] = int(2 * 60 + (12 if Stable else 20) * random() * 30)
                 vars[k][0] = int(
                     vars[k][1] / 60.0 * (30 + (you.skill[vars[k][2]] - 64) * random() / 64.0 * 5 + (you.comp - 3) * 5))
                 # s = f"{profn[vars[k][2]]<-20}  ${vars[k][0]:<4.0f}        {vars[k][1] / 60.0:.1f} ч."
                 # var[k] = s
             var[n] = None
             j = menu(13, 14, 0x70, 0x0F, var, " Профиль              З/п в месяц  Время в день", 1)
-            closebox(10, 11, 12, 45, q)
+            # closebox(10, 11, 12, 45, q)
             if j:
                 Down = 1
                 newdayf = 1
@@ -1050,26 +679,6 @@ def joffer(wait=1):
                     newjob(vars[j][0], vars[j][1], vars[j][2])
 
 
-def fidomess(from_, to, subj, text, y=5, x=8):
-    i = 0 # todo debug
-    q = openbox(y, x, y + 16, x + 60, 0x1E)
-    prnc(y + 1, x + 1, "From : ", 0x13)
-    prnc(y + 1, x + 8, from_, 0x13)
-    prnc(y + 2, x + 1, "To   : ", 0x13)
-    prnc(y + 2, x + 8, to, 0x13)
-    prnc(y + 3, x + 1, "Subj : ", 0x13)
-    prnc(y + 3, x + 8, subj, 0x13)
-    for i in range(x + 1, x + 60):
-        scrs(y + 4, i, '─')
-    scrs(y + 4, i, 195)
-    scrs(y + 4, 60 + x, 180)
-    prn(y + 5, x + 1, "Hi ")
-    i = wrtword(y + 5, x + 4, to)
-    scrs(y + 5, x + 4 + i, '!')
-    i = write(y + 7, x + 1, text)
-    wrtword(y + 8 + i, x + 1, from_)
-    anykey()
-    closebox(y, x, y + 16, x + 60, q)
 
 
 def proposal(i):
@@ -1098,6 +707,7 @@ def proposal(i):
     fidomess(from_[i - 1], you.name, "Предложение", s)
     if not yn("Вы принимаете предложение?"):
         return 0
+
     params.Down += d
     you.money -= pay
     s = None
@@ -1155,23 +765,20 @@ def proposal(i):
     # free(s)
     return 1
 
-
-
-
-def test(tst, N, y, x):
-    j = random(N)
-    tst[j].mark = 1
-    clrbl(y + 1, x + 2, y + 6, x + 49, 0x0F)
-    write(y + 1, x + 2, tst[j].qstn)
-    for k in range(3):
-        s = f"{k + 1}) {tst[j].ans[k]}"
-        prn(y + 4 + k, x + 3, s)
-    c = 0
-    s = 'salloc(50)'
-    while not (c > '0' and c < '4'):
-        c = getch()
-    c -= 0x31
-    return tst[j].correct == c
+# def test(tst, N, y, x):
+#     j = random(N)
+#     tst[j].mark = 1
+#     clrbl(y + 1, x + 2, y + 6, x + 49, 0x0F)
+#     write(y + 1, x + 2, tst[j].qstn)
+#     for k in range(3):
+#         s = f"{k + 1}) {tst[j].ans[k]}"
+#         prn(y + 4 + k, x + 3, s)
+#     c = 0
+#     s = 'salloc(50)'
+#     while not (c > '0' and c < '4'):
+#         c = getch()
+#     c -= 0x31
+#     return tst[j].correct == c
 
 
 def BBSinfo(n):
@@ -1221,7 +828,7 @@ def loadfile(name, where):
     return data
 
 
-def callBBS(n, you):
+def callBBS(n):
     q = 0
     PicSize = 16 * 50 * 2
     s = [0] * 60
@@ -1301,7 +908,7 @@ def callBBS(n, you):
             prn(22, 21, "NO CARRIER")
             BBSf = 0
             params.alltime += t0 - params.Time
-            closebox(6, 18, 23, 70, q)
+            # closebox(6, 18, 23, 70, q)
             showstat(1, 22, 0x30)
             return
 
@@ -1352,8 +959,8 @@ def callBBS(n, you):
                 # break
             if c.upper() == 'D':
                 u = min((int(cps) * k * 60) >> 10, bbs[n].soft)
-                u = min(u, you.hdspace - you.soft - params.os[you.os]['memory'])
-                if u == bbs[n].soft or u == you.hdspace - you.soft - params.os[you.os]['memory']:
+                u = min(u, you.hdspace - you.soft - os[you.os]['memory'])
+                if u == bbs[n].soft or u == you.hdspace - you.soft - os[you.os]['memory']:
                     k1 = (u << 10) / (cps * 60)
                 else:
                     k1 = k
@@ -1382,7 +989,7 @@ def callBBS(n, you):
                 you.virus += ((lrandom(u) < (u >> 5)))
                 # break
             if c.upper() == 27:
-                clrbl(7, 19, 22, 69, 0x0F)
+                # clrbl(7, 19, 22, 69, 0x0F)
                 # goto(nxt)
                 b1 = (int)(bbs[n].U - (bbs[n].D)) >> 2
                 bbs[n].mxtime += 5 * int(random() * b1) >> 8
@@ -1393,15 +1000,17 @@ def callBBS(n, you):
                 # goto(nxt)
         if c.upper() == 'M':
             prn(9, 22, "Message areas")
-            for i in range(2, params.LE):
+            for i in range(2, LE):
                 if bbs[n].ech[i - 2]:
                     prn(0, 0, f"{i - 1}) {echoes[i].name}")
                     # prn(10 + j, 22, s)
                     j += 1
             # getc:
-            c = getch()
-            if c > '0' and c < '9' and bbs[n].ech[c - '0' - 1]:
-                c -= 0x30 - 1
+            # c = input()
+            c = '1'
+            c = int(c)
+            if c > 0 and c < 9 and bbs[n].ech[c - 1]:
+                c -= 1
                 if not echoes[c].stat:
                     if k < (echoes[c].traf * echoes[c].trafk):
                         echoes[c].read = k / j * 100.0
@@ -1412,19 +1021,19 @@ def callBBS(n, you):
                     k -= k1
                     params.Time -= k1
                     bbs[n].time -= k1
-                    if random(100) < echoes[c].read:
+                    if random.randint(0, 100) < echoes[c].read:
                         echoes[c].event()
             elif c != 27:
                 pass
                 # goto(getc)
-            clrbl(7, 19, 22, 69, 0x0F)
+            # clrbl(7, 19, 22, 69, 0x0F)
             # break
         if c.upper() == 'G':
-            clrbl(7, 19, 22, 69, 0x0F)
+            # clrbl(7, 19, 22, 69, 0x0F)
             prn(22, 21, "NO CARRIER")
             BBSf = 0
             params.alltime += t0 - params.Time
-            closebox(6, 18, 23, 70, q)
+            # closebox(6, 18, 23, 70, q)
             showstat(1, 22, 0x30)
             return
 
@@ -1434,7 +1043,7 @@ def callBBS(n, you):
     # all1:
     BBSf = 0
     params.alltime += t0 - params.Time
-    closebox(6, 18, 23, 70, q)
+    # closebox(6, 18, 23, 70, q)
     showstat(1, 22, 0x30)
 
 
@@ -1458,7 +1067,7 @@ def vircheck(y, x):
     if t >= params.Time:
         message("Сегодня не успеем провериться...", 0x4F)
         return 0
-    q = openbox(y, x, y + 6, x + 40, 0x0F)
+    # q = openbox(y, x, y + 6, x + 40, 0x0F)
     prn(y + 1, x + 1, "Antivirus starts...")
     s = 'salloc(15)'
     for i in range(t + 1):
@@ -1468,18 +1077,18 @@ def vircheck(y, x):
         params.Time -= 1
         showtime()
         delay(400)
-    lstscn = params.D
-    i = you.virus / (random() * ((params.D - you.antiv) >> 3) + 1)
+    lstscn = D
+    i = you.virus / (random() * ((D - you.antiv) >> 3) + 1)
     if i:
         prn(0, 0, f"{i} virus(es) found & cured!")
         you.virus -= i
         prnc(y + 4, x + 1, s, 0x0C)
     else:
         prn(y + 4, x + 1, "No viruses found")
-    if params.D - you.antiv > 16:
+    if D - you.antiv > 16:
         prn(y + 5, x + 1, "Warning: you antivirus is too old!")
     anykey()
-    closebox(y, x, y + 6, x + 40, q)
+    # closebox(y, x, y + 6, x + 40, q)
     # free(s)
     return i
 
@@ -1519,7 +1128,7 @@ def echlink(echn=0, y=4, x=10):
             return 1
     else:
         sel = 2
-    q = openbox(y, x, y + 18, x + 40, 0x1E)
+    # q = openbox(y, x, y + 18, x + 40, 0x1E)
     prnc(y + 1, x + 1, "From : ", 0x13)
     prnc(y + 1, x + 8, you.name, 0x1F)
     prnc(y + 2, x + 1, "To   : AreaFix", 0x13)
@@ -1549,27 +1158,27 @@ def echlink(echn=0, y=4, x=10):
             # goto(select)
         if echn and not echoes[echn].stat:
             c = 0
-        for i in range(params.LE + 1, params.E):
+        for i in range(LE + 1, params.E):
             if not echoes[i].stat:
                 # delecho(i)
                 chrep(-4 - random.randint(0, 3))
             else:
                 i += 1
-        closebox(y, x, y + 18, x + 40, q)
+        # closebox(y, x, y + 18, x + 40, q)
         return c
     if c.upper() == 32:
         if echoes[sel].stat:
             echoes[sel].stat = 0
             traf -= echoes[sel].traf
             scrs(y + 2 + sel, x + 1, '-')
-            if sel > params.LE:
+            if sel > LE:
                 message("Учтите - ваша эха без вас не выживет!", 0x4F)
         else:
             if echoes[sel].plus < 3:
                 if check_traffic(traf + echoes[sel].traf):
                     traf += echoes[sel].traf
-                    echoes[sel].stat = 1 if sel <= params.LE else 2
-                    echoes[sel].dl = params.D
+                    echoes[sel].stat = 1 if sel <= LE else 2
+                    echoes[sel].dl = D
                     echoes[sel].msg = echoes[sel].newm = echoes[sel].new1 = 0
         if echn:
             # goto(selected)
@@ -1599,18 +1208,18 @@ def echlink(echn=0, y=4, x=10):
         # break
     # goto(select)
     # all:
-    closebox(y, x, y + 18, x + 40, q)
+    # closebox(y, x, y + 18, x + 40, q)
     return 0
 
 
 def readres(k):
-    if params.Style == 3:
+    if Style == 3:
         chrep((random.randint(0, 5) - 3) * k)
         chmood(random.randint(0, 6) - 1)
-    if params.Style == 2:
+    if Style == 2:
         chrep(random.randint(0, k + you.moder * 2))
         chmood(_rnd(k >> 1))
-    if params.Style == 1:
+    if Style == 1:
         if k:
             chrep(random.randint(0, you.moder + 2))
             chmood(_rnd(2))
@@ -1636,7 +1245,7 @@ def echread(au=1, y=6, x=2):
             return 1
     else:
         sel = 2
-    q = openbox(y, x, y + params.LE + 7, x + 74, 0x1B)
+    # q = openbox(y, x, y + LE + 7, x + 74, 0x1B)
     prnc(y + 1, x + 1, "From : ", 0x13)
     prnc(y + 1, x + 8, you.name, 0x1F)
     prnc(y + 2, x + 1, "To   : AreaFix", 0x13)
@@ -1666,9 +1275,9 @@ def echread(au=1, y=6, x=2):
         #     goto(rd3)
         rd = 1.0
         # if params.Time <= 0:
-        #     rd = (t + Time - 1.0) / t
-        #     Time = 1
-        #     alltime += Time - 1
+        #     rd = (t + params.Time - 1.0) / t
+        #     params.Time = 1
+        #     alltime += params.Time - 1
         # else:
         #     alltime += t
         # if not (j = echoes[area[sel]].newm * rd):
@@ -1719,7 +1328,7 @@ def echread(au=1, y=6, x=2):
         # break
     # goto(select)
     # all:
-    closebox(y, x, y + params.LE + 7, x + 74, q)
+    # closebox(y, x, y + LE + 7, x + 74, q)
     return 0
 
 
@@ -1781,10 +1390,10 @@ def buycomp(wait=0):
                 chmood((i - you.comp) * (random.randint(0, 3) + 1))
             you.comp = i
             you.creli = vars[j - 1][1]
-            if params.os[you.os].mincomp > you.comp:
+            if os[you.os].mincomp > you.comp:
                 you.os = 0
                 if you.osreq:
-                    you.wdate = params.D + 6
+                    you.wdate = D + 6
             # newc += 1
             if cpr:
                 s = "Ваш старый компьютер продан за $" + str(cpr)
@@ -1804,7 +1413,7 @@ def buymodem(wait=0):
     ar = [None] * 7
     var = [None] * 6
     vars = [[0] * 2 for _ in range(5)]  # цена, надежность
-    s = [None] * 70 + 12 * 5
+    s = ''
     q = None
     i = 0
     n = 0
@@ -1926,12 +1535,12 @@ def buyhd(wait=0):
         you.hd = i
         you.hreli = vars[j - 1][1]
         you.hdspace = hd[you.hd] << 10
-        if you.hdspace < params.os[you.os].size:
+        if you.hdspace < os[you.os].size:
             you.os = 0
             if you.osreq:
-                you.wdate = params.D + 6
-        if you.soft + params.os[you.os].size > you.hdspace:
-            incsoft(you.hdspace - you.soft - params.os[you.os].size)
+                you.wdate = D + 6
+        if you.soft + os[you.os].size > you.hdspace:
+            incsoft(you.hdspace - you.soft - os[you.os].size)
         # newh += 1
 
 
@@ -1984,14 +1593,14 @@ def buysoft():
         if vars[j - 1][0] > you.money:
             message("У вас не хватает денег", 0x4F)
             # goto(sel1)
-        if you.soft + params.os[you.os].size + vars[j - 1][1] * 1024 > you.hdspace:
+        if you.soft + os[you.os].size + vars[j - 1][1] * 1024 > you.hdspace:
             message("У вас не хватает места на винте", 0x4F)
             # goto(sel1)
         decmoney(vars[j - 1][0])
         you.soft += vars[j - 1][1] * 1024
         params.Time -= 3 + random.randint(0, 3)
         if i == 0:
-            you.antiv = params.D
+            you.antiv = D
         elif i == 1:
             k = you.wprof if you.wprof else 1
             you.skill[k] += (vars[j - 1][1] >> 4) * random.randint(0, 3)
@@ -1999,7 +1608,7 @@ def buysoft():
             chmood((vars[j - 1][1] >> 5) * (random.randint(0, 3) + 4))
     showstat()
     showtime()
-    # if Time > 5:
+    # if params.Time > 5:
     #     goto(sel)
 
 
@@ -2063,7 +1672,7 @@ def newday():
         chmood(random.randint(10))
         you.tries = 0
 
-    if (params.D.month() == 6 or params.D.month() == 1) and you.army == 2 and params.D - params.SD > 2 * 30:
+    if (params.D.month() == 6 or params.D.month() == 1) and you.army == 2 and params.D - SD > 2 * 30:
         you.army = 3
 
     if you.sdays == -1 and params.D.month() == 9 and params.D.day() == 1:
@@ -2088,17 +1697,17 @@ def newday():
 
     if you.army == 3 and (params.D.month() == 4 or params.D.month() == 10) and not random.randint(7):
         message("         Пришла повестка на бумажке!!!\nГоворила вам мама - надо в институт поступать...", 0x4F)
-        if not params.Stable:
+        if not Stable:
             i = menu(12, 25, 0x70, 0x0F, arm, "Варианты", 1)
             while i == 0:
                 pass
             # match i:
             if i == 1:
-                q = openbox(10, 29, 14, 52, 0x70)
+                # q = openbox(10, 29, 14, 52, 0x70)
                 prn(12, 30, "Сколько дать? $    00")
                 k = 0
                 # i = nmbrscrl( & k, 12, 45, min(999, you.money // 100), 1, 1)
-                closebox(10, 29, 14, 52, q)
+                # closebox(10, 29, 14, 52, q)
                 you.money -= k * 100
                 if random.randint(k) >= 20:
                     message("Считайте, что военкомат забыл о вас навсегда!", 0x1F)
@@ -2118,7 +1727,7 @@ def newday():
             #     goto
             #     oblom
         else:
-            oblom: block(1, 24, 0x4F)
+            # oblom: block(1, 24, 0x4F)
             message("Вас забрали в армию. Вот, собственно, и все...", 0x4F)
             quit(2)
 
@@ -2132,10 +1741,10 @@ def newday():
             message("Как ни странно, общаться можно не только по модему...", 0x1F)
 
     for i in range(4):
-        (params.occup[i].func)()
+        (occup[i].func)()
         showtime()
 
-    if not params.Down and params.auto_[3] and you.antiv.date and params.D.days() >= params.lstscn.days() + params.auto_[3]:
+    if not params.Down and auto_[3] and you.antiv.date and params.D.days() >= lstscn.days() + auto_[3]:
         vircheck(2, 4)
 
     if you.spay > 0 or you.spay < 0 and studper(params.D) != 2:
@@ -2144,12 +1753,12 @@ def newday():
     if params.D.day() < 20 and random.randint(10) < random.randint(you.friends) and you.money > 100:
         l = random.randint(you.money >> 3) + 5
         s = f"Друг просит ${l} в долг до конца месяца. Дадите?"
-        if yn(s, params.auto_[1]):
+        if yn(s, auto_[1]):
             you.money -= l
             you.debt -= l
             chrep(random.randint(3) + 1)
         else:
-            message("Жадность не способствует дружбе...", 0x4F, 1 + params.auto_[1])
+            message("Жадность не способствует дружбе...", 0x4F, 1 + auto_[1])
             if random.randint(you.money / l) > 8:
                 you.friends -= 1
 
@@ -2161,10 +1770,10 @@ def newday():
                 fire()
             elif random.randint(you.income) > 80 + (i := random.randint(5) + 1) * 80 and not you.wdate.Date and (
                     you.osreq == i) != you.os:
-                s = f"Ваша работа требует перехода на {params.OSnames[you.osreq]}\nУ вас в запасе 6 дней."
+                s = f"Ваша работа требует перехода на {OSnames[you.osreq]}\nУ вас в запасе 6 дней."
                 message(s, 0x4F)
                 you.wdate = params.D + 6
-                if params.auto_[2] == 1:
+                if auto_[2] == 1:
                     instOS(you.osreq)
 
     for i in range(10):
@@ -2173,7 +1782,7 @@ def newday():
             if not bbs[i].down:
                 bbs[i].modem = random.randint(6)
 
-    if not params.Stable:
+    if not Stable:
         if not random.randint(60) and you.money > 300:
             l = random.randint(you.money >> 1) + 50
             s = f"Из-за финансового кризиса вы потеряли ${l}"
@@ -2227,14 +1836,14 @@ def newday():
                 #             2 - (1.0 + random.randint(you.soft >> 9) / (1 + (you.soft >> 8)))))
                 # incsoft(-l)
                 #
-                # if you.hdspace < params.os[you.os].size or l > (you.soft >> 1):
-                #     s = f"Порушилась операционная система...\nГрузим с дискетки {params.OSnames[0]}"
+                # if you.hdspace < os[you.os].size or l > (you.soft >> 1):
+                #     s = f"Порушилась операционная система...\nГрузим с дискетки {OSnames[0]}"
                 # message(s, 0x4F)
                 # chmood(-random.randint(you.os + 1))
                 # you.os = 0
-                # Time -= params.os[0]['itime']
-                # if Time < 1:
-                #     Time = 1
+                # params.Time -= os[0]['itime']
+                # if params.Time < 1:
+                #     params.Time = 1
                 # chmood(-2)
                 # if you.osreq:
                 #     you.wdate = D + 6
@@ -2292,20 +1901,20 @@ def newday():
 
 # def initech():
 #     echoes = []
-#     for i in range(0, params.LE + 6):
+#     for i in range(0, LE + 6):
 #         echoes.append(Echo(you))
 #
 #     import echo
-#     echoes[1] = echo.Local()
-#     echoes[2] = echo.Point()
-#     echoes[3] = echo.Exch()
-#     echoes[4] = echo.Bllog()
-#     echoes[5] = echo.Ruanekdot()
-#     echoes[6] = echo.Job()
-#     echoes[7] = echo.Vcool()
-#     echoes[8] = echo.Hardw()
-#     echoes[9] = echo.Softw()
-#     echoes[10] = echo.Fecho()
+#     echoes[1] = Local()
+#     echoes[2] = Point()
+#     echoes[3] = Exch()
+#     echoes[4] = Bllog()
+#     echoes[5] = Ruanekdot()
+#     echoes[6] = Job()
+#     echoes[7] = Vcool()
+#     echoes[8] = Hardw()
+#     echoes[9] = Softw()
+#     echoes[10] = Fecho()
 #     return echoes
 
 
@@ -2379,6 +1988,7 @@ def main():
     # else:
     #     message("Не найден Readme.fid! Так дело не пойдет!", 0x4F)
     #     quit(10)
+    import os
     if os.path.exists('fido.dat'):
         setpref(echoname)
         # echoes = initech()
@@ -2387,7 +1997,7 @@ def main():
         #     message(s, 0x4F)
         # quit(10)
     else:
-        SD = params.Date(1, 1, 1990)
+        SD = Date(1, 1, 1990)
         SD.setday(1)
         # memset(you.name, ' ', 30)
         # you.name[0] = 0
@@ -2445,7 +2055,7 @@ def main():
             bbs[i].name = bbsnames[i]
             bbs[i].modem = random.randint(0, 6)
             bbs[i].down = 1 if random.randint(0, 7) else 0
-            for k in range(0, params.LE - 2):
+            for k in range(0, LE - 2):
                 if random.randint(0, 3):
                     bbs[i].ech[k] = 1
         params.Time = you.ftime
@@ -2471,19 +2081,19 @@ def main():
             # switch (i):
             if i == 1:
                 # gettext(1, 15, 21, 21, q = malloc(7 * 22 * 2))
-                # i = menuf(1, 0, 0x2F, 0x0F, bbsnames, "BBS", LastBBS + 1, &BBSinfo)
-                i = 1
+                # i = menuf(1, 0, 0x2F, 0x0F, bbsnames, "BBS", LastBBS + 1, BBSinfo)
+                i = 2
                 # puttext(1, 15, 21, 21, q)
                 # free(q)
                 if i:
-                    callBBS(i - 1, you)
+                    callBBS(i - 1)
 
             if i == 2:
                 k = you.modem + (you.soft >> 12)
                 if k > 20:
                     k = 20
                 if not you.sysop:
-                    q = openbox(10, 21, 14, 59, 0x70)
+                    # q = openbox(10, 21, 14, 59, 0x70)
                     prn(12, 24, "Название BBS")
                     prnc(12, 39, bbsnames[11], 0x0F)
                     # gotoyx(12, 39)
@@ -2514,7 +2124,7 @@ def main():
             if i == 3:
                 buysoft()
             if i == 4:
-                q = openbox(10, 23, 14, 55, 0x70)
+                # q = openbox(10, 23, 14, 55, 0x70)
                 prn(12, 25, "Сколько % софта оставить:")
                 k = 100
                 # nmbrscrl(&k, 12, 50, 100)
@@ -2541,7 +2151,7 @@ def main():
                 break
 
             if i == 1:
-                if params.D.month() != 6:
+                if D.month() != 6:
                     message("Вступительные экзамены будут в июне!", 0x4F)
                 else:
                     if you.tries > 3:
@@ -2574,7 +2184,7 @@ def main():
                 you.sprof = k
 
             if i == 3:
-                q = openbox(10, 20, 14, 60, 0x70)
+                # q = openbox(10, 20, 14, 60, 0x70)
                 prn(12, 21, "Интенсивность учебы в ВУЗе      %")
                 # nmbrscrl(&you.intens, 12, 49, 200, 10, 10)
                 # closebox(10, 20, 14, 60, q)
@@ -2597,19 +2207,19 @@ def main():
                         prn(0, 0, "Подпишитесь на эху %s", echoes[2].name)
                         message(s, 0x4F)
                         break
-                    q = openbox(10, 23, 14, 55, 0x70)
+                    # q = openbox(10, 23, 14, 55, 0x70)
                     prn(12, 25, "Сколько поинтов набрать:")
                     # nmbrscrl(&maxpnt, 12, 50, 64, you.points)
-                    closebox(10, 23, 14, 55, q)
+                    # closebox(10, 23, 14, 55, q)
                 if i == 2:
-                    q = openbox(10, 23, 14, 57, 0x70)
+                    # q = openbox(10, 23, 14, 57, 0x70)
                     prn(12, 25, "Сколько поинтов оставить:")
                     k = you.points
                     chrep(nmbrscrl(you.points, 12, 50, you.points) * (4 + 3 * random()))
                     if k:
                         echoes[1].traf *= you.points / k
                     maxpnt = 0
-                    closebox(10, 23, 14, 57, q)
+                    # closebox(10, 23, 14, 57, q)
 
         if c.upper() == 'F':
             if not you.friends:
@@ -2650,7 +2260,7 @@ def main():
                     if you.moder > 3:
                         message("Вы хотите модерировать слишком много конференций!", 0x4F)
                         break
-                    q = openbox(10, 13, 15, 68, 0x70)
+                    # q = openbox(10, 13, 15, 68, 0x70)
                     # echoes[E] = Echo(E)
                     prn(12, 14, "Название конференции")
                     # prnc(12, 36, echoes[E].name, 0x0F)
@@ -2670,7 +2280,7 @@ def main():
                     #     you.moder += 1
                     #     E += 1
                     #     chrep(4)
-                    closebox(10, 13, 15, 68, q)
+                    # closebox(10, 13, 15, 68, q)
                     break
                 if i == 4:
                     # i = menu(12, 25, 0x70, 0x0F, style, "Ваш стиль", Style + 1)
@@ -2678,24 +2288,23 @@ def main():
                         Style = i - 1
                     break
                 if i == 5:
-                    q = openbox(4, 5, 22, 75, 0x70)
+                    # q = openbox(4, 5, 22, 75, 0x70)
                     prn(4, 13, "Эха")
                     prn(4, 37, "Трафик,К")
                     prn(4, 46, "Время,мин")
                     prn(4, 60, "Награды")
                     for i in range(0, params.E):
                         if echoes[i].stat and echoes[i].mark < 2:
-                            # prn(0,0,  "%-30s  %4d      %3d", echoes[i].name, echoes[i].traf, echtime(i))
+                            prn(0,0,  f"{echoes[i].name}  {echoes[i].traf}      {echo_time(i)}")
                             l += echoes[i].traf
                             m += echo_time(i)
                             prn(5 + k, 7, s)
                             for j in range(0, echoes[i].plus):
                                 prn(5 + k, 60 + (j << 2), "[+]")
                             k += 1
-                    prn(0, 0, "             Всего              %4ld    %d ч.%02d мин.", l, m / 60, m % 60)
+                    prn(0, 0, f"Всего   {l}    {m/60}ч. {m%60} мин.")
                     prn(21, 6, s)
                     anykey()
-                    closebox(4, 5, 22, 75, q)
 
         if c.upper() == 'U':
             # i = menu(12, 25, 0x70, 0x0F, upgrm, "Что апгрейдим?", 1):
@@ -2712,11 +2321,11 @@ def main():
                 status = you.status
                 if status == 0:
                     if not newinfo(2):
-                        prn(0, 0, "Читайте эху %s", echoes[2].name)
+                        prn(0, 0, f"Читайте эху {echoes[2].name}")
                         message(s, 0x4F)
                         break
                     if you.reput > 32:
-                        q = openbox(10, 14, 10 + 7, 14 + 50, 0x0F)
+                        # q = openbox(10, 14, 10 + 7, 14 + 50, 0x0F)
                         prn(10, 30, "Экзамен по полиси")
                         for i in range(0, 9):
                             qstns[i].mark = 0
@@ -2724,7 +2333,7 @@ def main():
                             pass
                             # if not test(qstns, 9, 10, 14):
                             #     break
-                        closebox(10, 14, 10 + 7, 14 + 50, q)
+                        # closebox(10, 14, 10 + 7, 14 + 50, q)
                         if i < 3:
                             message("Учите полиси!", 0x4F)
                             # goto ref
@@ -2734,7 +2343,7 @@ def main():
                                 "свои собственные. Но чтобы стать полноправным членом ФИДО, вам надо\n"
                                 "получить нодовый адрес.", 0x1F)
                         chmood(you.status * 2)
-                        for i in range(2, params.LE):
+                        for i in range(2, LE):
                             echoes[i].stat = 0
                         echoes[0].stat = echoes[1].stat = 1
                     else:
@@ -2746,7 +2355,7 @@ def main():
                     if you.reput > 128:
                         y = 1
                         x = 1
-                        q = openbox(y, x, y + 22, x + 46, 0x1E)
+                        # q = openbox(y, x, y + 22, x + 46, 0x1E)
                         prn(y, x + 12, "Укажите пункты заявки")
                         for k in range(0, 30):
                             i = int(21 * random())
@@ -2798,7 +2407,7 @@ def main():
                             break
                         # goto select
                         # all:
-                        closebox(y, x, y + 22, x + 46, q)
+                        # closebox(y, x, y + 22, x + 46, q)
                         if not c:
                             break
                         for i in range(0, 21):
@@ -2832,36 +2441,34 @@ def main():
             # i = menu(12, 25, 0x70, 0x0F, tmenu, "Времяпровождение", 1)
             # switch (i):
             if i == 1:
-                prncc(24, 0,
-                      "\x04 Enter\xFF\ Swap │ \x04 Esc\xFF\ Exit                                                         ",
-                      0x70)
-                q = openbox(10, 30, 15, 50, 0x70)
+                prncc(24, 0,"Enter | Swap │ Esc | Exit", 0x70)
+                # q = openbox(10, 30, 15, 50, 0x70)
                 for i in range(0, 4):
-                    prn(11 + i, 32, params.occup[i].name)
+                    prn(11 + i, 32, occup[i].name)
                 i = 1
                 # tlbl:
-                prnc(10 + i, 32, params.occup[i - 1].name, 0x0F)
-                prnc(11 + i, 32, params.occup[i].name, 0x0F)
+                prnc(10 + i, 32, occup[i - 1].name, 0x0F)
+                prnc(11 + i, 32, occup[i].name, 0x0F)
                 # do
                 c = getch()  # while not c
                 # switch (c):
                 if c == 13:
-                    tmp = params.occup[i - 1]
-                    params.occup[i - 1] = params.occup[i]
-                    params.occup[i] = tmp
+                    tmp = occup[i - 1]
+                    occup[i - 1] = occup[i]
+                    occup[i] = tmp
                     # break
                 if c == 27:
-                    closebox(10, 30, 15, 50, q)
+                    # closebox(10, 30, 15, 50, q)
                     showhelp()
                     # goto all1
                 if c == 72:
-                    prnc(10 + i, 32, params.occup[i - 1].name, 0x70)
-                    prnc(11 + i, 32, params.occup[i].name, 0x70)
+                    prnc(10 + i, 32, occup[i - 1].name, 0x70)
+                    prnc(11 + i, 32, occup[i].name, 0x70)
                     i = 3 if i == 1 else i - 1
                     break
                 if c == 80:
-                    prnc(10 + i, 32, params.occup[i - 1].name, 0x70)
-                    prnc(11 + i, 32, params.occup[i].name, 0x70)
+                    prnc(10 + i, 32, occup[i - 1].name, 0x70)
+                    prnc(11 + i, 32, occup[i].name, 0x70)
                     i = 1 if i == 3 else i + 1
                     break
                 # goto tlbl
@@ -2870,11 +2477,11 @@ def main():
                     message("С такими финансами не до развлечений...", 0x4F)
                 else:
                     k = 5
-                    q = openbox(10, 24, 15, 56, 0x70)
+                    # q = openbox(10, 24, 15, 56, 0x70)
                     prn(11, 26, "На какую сумму развлекаемся?")
                     scrs(13, 37, '$')
                     # i = nmbrscrl(&k, 13, 38, min(you.money, 999), 5)
-                    closebox(10, 24, 15, 56, q)
+                    # closebox(10, 24, 15, 56, q)
                     if i:
                         you.money -= k
                         if k > 64:
@@ -2892,15 +2499,15 @@ def main():
                             fire()
                 # break
             if i == 3:
-                q = openbox(10, 28, 15, 52, 0x70)
+                # q = openbox(10, 28, 15, 52, 0x70)
                 for i in range(0, 3):
                     prn(11 + i, 30, aut[i])
-                    prn(11 + i, 30 + 14, autop[params.auto_[i]])
-                prn(0, 0, f"Антивирус {params.auto_[3]} д.")
+                    prn(11 + i, 30 + 14, autop[auto_[i]])
+                prn(0, 0, f"Антивирус {auto_[3]} д.")
                 prn(14, 30, s)
                 i = 0
                 # autl:
-                chatr(11 + i, 30 + 14, 7, 0x0F)
+                # chatr(11 + i, 30 + 14, 7, 0x0F)
                 # do
                 c = getch()  # while not c
                 # switch (c):
@@ -2909,26 +2516,26 @@ def main():
                         # k = menu(10 + i, 30 + 13, 0x70, 0x0F, autop, NULL, 1)
                         if k:
                             k -= 1
-                            params.auto_[i] = k
-                            prn(11 + i, 30 + 14, autop[params.auto_[i]])
+                            auto_[i] = k
+                            prn(11 + i, 30 + 14, autop[auto_[i]])
                     else:
-                        prn(0, 0, f"{params.auto_[3]}")
+                        prn(0, 0, f"{auto_[3]}")
                         # gotoxy(45, 15)
                         if input(s, 2):
                             # auto_[3] = atoi(s)
-                            prn(0, 0, f"{params.auto_[3]}")
+                            prn(0, 0, f"{auto_[3]}")
                             prn(14, 30 + 14, s)
                     # break
                 if c == 27:
-                    closebox(10, 28, 15, 51, q)
+                    # closebox(10, 28, 15, 51, q)
                     showhelp()
                     # goto all1
                 if c == 72:
-                    chatr(11 + i, 30 + 14, 7, 0x70)
+                    # chatr(11 + i, 30 + 14, 7, 0x70)
                     i = 3 if i == 0 else i - 1
                     break
                 if c == 80:
-                    chatr(11 + i, 30 + 14, 7, 0x70)
+                    # chatr(11 + i, 30 + 14, 7, 0x70)
                     i = 0 if i == 3 else i + 1
                     # break
                 # goto autl
@@ -2991,7 +2598,7 @@ def main():
         if c.upper() == 'Q':
             quit(0)
 
-    block(1, 24, 0xF)
+    # block(1, 24, 0xF)
     if not params.Time:
         newday()
     showstat(1, 22, 0x30)
