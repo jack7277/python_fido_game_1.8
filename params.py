@@ -1,132 +1,46 @@
+import random
+import time
 from datetime import datetime
-import fido_date
+from date import Date
+from fido_random import _rnd
+from mood import *
+from person import you
+from reputation import chrep
+from wnds import prn, menuf, write, message, prnc, scr, scrw
 
-class Date:
-    def __init__(self, day=1, month=1, year=1990):
-        self.date = 0
-        self.date = self.setdate(day, month, year)
-        # print()
 
-    @staticmethod
-    def _year(date):
-        return ((date & 0xFE00) >> 9) + 1990
+def getch():
+    import os
+    if os.name == 'nt':
+        import msvcrt
+        return msvcrt.getch().decode()
+    else:
+        import sys, tty, termios
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
 
-    @staticmethod
-    def _month(date):
-        return (date & 0x01E0) >> 5
 
-    @staticmethod
-    def _day(Date):
-        return Date & 0x001F
 
-    def year(self):
-        return self._year(self.date)
+end1 = ("", "а", "ов")
+end2 = ("день", "дня", "дней")
 
-    def month(self):
-        return self._month(self.date)
 
-    def day(self):
-        return self._day(self.date)
-
-    def setyear(self, year):
-        self.date &= ~0xFE00
-        self.date ^= int((year - 1990)) << 9
-        return self.date
-
-    def year_(self):
-        return int((self.date & 0xFE00) >> 9)
-
-    def setmonth(self, month):
-        if month > 12:
-            self.setyear(self._year(self.date) + month // 12)
-            month = month % 12 + 1
-        self.date &= ~0x01E0
-        self.date ^= month << 5
-        return self.date
-
-    def setday(self, day):
-        self.date &= ~0x001F
-        self.date ^= int(day)
-        return self.date
-
-    def setdate(self, day, month, year):
-        self.setyear(year)
-        self.setmonth(month)
-        self.setday(day)
-        return self.date
-
-    def days(self):
-        y = self.year_()
-        return self.day() + fido_date.mofs[self.month() - 1] + y * 365 + (y + 3) // 4 + (
-            0 if y % 4 != 0 else (1 if self.month() > 2 else 0))
-
-    def __sub__(self, d):
-        return self.days() - d.days()
-
-    def __iadd__(self, d):
-        self.date = self.dstodate(self.days() + d)
-        return self.date
-
-    def __isub__(self, d):
-        self.date = self.dstodate(self.days() - d)
-        return self.date
-
-    def __eq__(self, other):
-        return self.date == other.date
-
-    def __ne__(self, other):
-        return self.date != other.date
-
-    def __lt__(self, other):
-        return self.days() < other.days()
-
-    def __le__(self, other):
-        return self.days() <= other.days()
-
-    def __gt__(self, other):
-        return self.days() > other.days()
-
-    def __ge__(self, other):
-        return self.days() >= other.days()
-
-    def weekday(self):
-        return (self.days() + 7) % 7
-
-    def daysinmonth(self):
-        x = self.month()
-        return 31 if x == 12 else (fido_date.mofs[x] - fido_date.mofs[x - 1])
-
-    @staticmethod
-    def dstodate(days):
-        d = j = i = k = y = 0
-        dt = Date()
-        y = days // 365.25
-        while (d := y * 365 + ((y + 3) // 4)) >= days:
-            y -= 1
-        d = days - d
-        if y % 4 == 0:
-            if d == fido_date.mofs[2] + 1:
-                dt.setmonth(2)
-                dt.setday(29)
-                return dt.date
-            elif d > fido_date.mofs[2]:
-                d -= 1
-        if d > fido_date.mofs[11]:
-            k = 11
-        else:
-            i = 0
-            j = 11
-            while j > i + 1:
-                k = (i + j) // 2
-                if d > fido_date.mofs[k]:
-                    i = k
-                else:
-                    j = k
-            k = i
-        dt.setmonth(k + 1)
-        dt.setday(d - fido_date.mofs[k])
-        dt.setyear(y + 1990)
-        return dt.date
+# Define the OS names
+OSnames = [
+    "MSDOS 5.0",
+    "MSDOS+Win'3.11",
+    "Windows 95",
+    "Windows NT",
+    "OS/2",
+    "Linux",
+    None
+]
 
 
 qstns = [
@@ -272,6 +186,183 @@ maxpnt = 0
 auto_ = [0, 0, 0, 0]  # link, debt, OS, antivirus
 Time = 0
 
+week = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
+month = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь",
+         "Декабрь", None]
+situat = ["Нестабильная", "Стабильная", None]
+
+dtm = ""
+
+
+def scrs(y, x, c):
+    scr[(y) * 160 + ((x) << 1)] = (c)
+
+
+def scra(y, x, c):
+    scr[(y) * 160 + ((x) << 1) + 1] = (c)
+
+
+def scrsa(y, x, w):
+    scrw[(y) * 80 + (x)] = (w)
+
+
+def end(x, ending=end1):
+    if 10 < x <= 20:
+        # if x<=20 and x>10:
+        return ending[2]
+    x = x % 10 - 1
+    return ending[1] if x < 4 else ending[2]
+
+
+mtok = lambda x: (x) << 10
+
+BB = lambda: you.hdspace < mtok(hd[you.hd])
+
+
+def newjob(pay, time, prof):
+    if you.wdays > 7:
+        you.money += you.income * (float(you.wdays % 30) / 30)
+    you.ftime += you.wtime
+    you.wtime = time
+    you.ftime -= you.wtime
+    you.wprof = prof
+    you.income = pay
+    you.wdays = 0
+    you.osreq = 0
+    you.wdate = 0
+
+
+def yn(qst, ans=0, c1=0x70, c2=0xF):
+    ls = 0
+    k = 0
+    i = 0
+    s = 1
+    n = 1
+    while qst[i]:
+        if qst[i] == '\n':
+            if k > ls:
+                ls = k
+            k = 0
+            n += 1
+        else:
+            k += 1
+        i += 1
+    if k > ls:
+        ls = k
+    ll = max(ls + 4, 28)
+    t = 10
+    l = (78 - ll) >> 1
+    # q = openbox(t, l, t + 5 + n, l + ll, c1)
+    write(t + 2, l + 2, qst)
+    if ans:
+        s = ans
+    while (True):
+        prnc(t + 3 + n, l + 2, " А как же! ", c2 if s == 1 else c1)
+        prnc(t + 3 + n, l + ll - 12, " Вот еще!  ", c1 if s == 1 else c2)
+        if ans:
+            delay(1000)
+            break
+        c = getch()
+        if c == 13:
+            break
+        elif c == 75:
+            if s == 1:
+                s = 2
+            else:
+                s -= 1
+        elif c == 77:
+            if s == 2:
+                s = 1
+            else:
+                s += 1
+    # closebox(t, l, t + 5 + n, l + ll, q)
+    return s == 1
+
+
+def OSinfo(n):
+    s = f"Install time {os[n-1]['itime']} min.\nSpace required {os[n-1]['memory'] >> 10}M"
+    write(14, 2, s)
+
+
+def instOS(n=0):
+    o = None
+    i = None
+    y = 10
+    x = 0
+    res = 0
+    Time = 30  # ?????? тут этого не должно быть
+    if not n:
+        # q = openbox(13, 0, 16, 22, 0x30)
+        o = menuf(12, 25, 0x70, 0x0F, OSnames, "Install", 1, OSinfo)
+        # closebox(13, 0, 16, 22, q)
+    else:
+        o = n + 1
+    while (1):
+        if o:
+            o -= 1
+            if os[o]['memory'] > Time:
+                message("Сегодня не успеем...", 0x4F)
+                break
+            if os[o]['mincomp'] > you.comp:
+                message("У вас слишком хилый компьютер!", 0x4F)
+                break
+            if you.soft + os[o]['memory'] > you.hdspace:
+                message("Не хватает места на винте!", 0x4F)
+                break
+            # q = openbox(y, x, y + 6, x + 40, 0x0F)
+            prn(0, 0, f"Installing {OSnames[o]}...")
+            # prn(y + 1, x + 1, s)
+            for i in range(1, os[o]['itime'] + 1):
+                percent = 100 if i == os[o]['itime'] else i * 100 / os[o]['itime']
+                prn(0, 0, f"{percent} complete")
+                s = ''
+                prn(y + 3, x + 2, s)
+                Time -= 1
+                showtime()
+                if o > 0 and _rnd(400 / (you.skill[1] + 1)) and not _rnd(10):
+                    message("Глюки!!! Придется переинсталлировать заново...", 0x4F)
+                    break
+                delay(400)
+            # closebox(y, x, y + 6, x + 40, q)
+            you.os = o
+            res = 1
+            if you.osreq:
+                you.wdate = D + 6
+    return res
+
+
+def studper(D):
+    if D < Date(D.year, 1, 25) or (Date(D.year, 6, 1) <= D < Date(D.year, 6, 25)):
+        return 0  # session
+    elif Date(D.year, 9, 1) <= D or (Date(D.year, 2, 6) <= D < Date(D.year, 6, 1)):
+        return 1  # semester
+    else:
+        return 2  # vacations
+
+
+def delay(ms):
+    time.sleep(ms / 1000)
+
+
+def fire():
+    chrep(-random.randint(0, 10) - 5)
+    you.skill[you.wprof] -= 15
+    if you.skill[you.wprof] < 0:
+        you.skill[you.wprof] = 0
+    chmood(-15 - random.randint(0, 1) * (you.income) / (you.wtime / 60.0) / 8)
+    you.ftime += you.wtime
+    you.wtime = 0
+    you.wdays = 0
+    you.income = 0
+    you.wprof = 0
+    you.osreq = 0
+
+
+def showtime():
+    prn(0, 0,
+        f"{week[D.weekday()]}, {D.day()}.{D.month()}.{D.year()}  Осталось {Time / 60} ч. {Time % 60} мин. ")
+    prn(0, 32, dtm)
+
 
 # Define the toccup structure as a class
 class Toccup:
@@ -287,17 +378,6 @@ occup = [
     Toccup("Работа      ", 2, 'worktime'),
     Toccup("Учеба       ", 3, 'studtime'),
     Toccup("Развлечения", 4, 'joytime')
-]
-
-# Define the OS names
-OSnames = [
-    "MSDOS 5.0",
-    "MSDOS+Win'3.11",
-    "Windows 95",
-    "Windows NT",
-    "OS/2",
-    "Linux",
-    None
 ]
 
 # Define the OS information

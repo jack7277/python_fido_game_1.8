@@ -1,6 +1,6 @@
 # word = int
 # byte = int
-from fido import scrs
+
 
 scr = bytearray(b'\x00' * 0xB8000000)
 scrw = bytearray(b'\x00' * 0xB8000000)

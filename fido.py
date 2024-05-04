@@ -6,18 +6,19 @@ e-mail: comte@au.ru
 При внесении любых модификаций указание моих копирайтов обязательно
 """
 import sys
-import time
-from init import *
 from random import random
 from typing import Union
 
 import fido_date
-import params
 from params import *
 from echo import *
 from fido_random import random_, _rnd, lrandom
 from person import *
 from wnds import *
+
+
+end1 = ("", "а", "ов")
+end2 = ("день", "дня", "дней")
 
 
 def upcase(c):
@@ -33,8 +34,6 @@ def tstbit(x, n):
 
 
 
-word = Union[int, None]
-byte = Union[int, None]
 
 
 # Define the question structure as a class
@@ -100,42 +99,15 @@ def max(a, b):
     return a if a > b else b
 
 
-def getch():
-    import os
-    if os.name == 'nt':
-        import msvcrt
-        return msvcrt.getch().decode()
-    else:
-        import sys, tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
 
 
-def _year(Date: word) -> word:
-    return ((Date & 0xFE00) >> 9) + 1980
-
-
-def _month(Date: word) -> byte:
-    return (Date & 0x01E0) >> 5
-
-
-def _day(Date: word) -> byte:
-    return Date & 0x001F
 
 
 def round(f: float) -> int:
     return int(f + (0.5 if f > 0 else -0.5))
 
 
-
-
-def dstodate(days: word) -> word:
+def dstodate(days) -> int:
     d, j, i, k, y = 0, 0, 0, 0, 0
     dt = Date()
     y = int(days // 365.25)
@@ -189,16 +161,6 @@ def ESC():
     # return (kbhit() and getch()==27)
 
 
-def scrs(y, x, c):
-    scr[(y) * 160 + ((x) << 1)] = (c)
-
-
-def scra(y, x, c):
-    scr[(y) * 160 + ((x) << 1) + 1] = (c)
-
-
-def scrsa(y, x, w):
-    scrw[(y) * 80 + (x)] = (w)
 
 
 def anykey():
@@ -241,15 +203,6 @@ def nmbrscrl(n, y, x, mx=99, mn=0, dn=1):
     return 0
 
 
-def studper(D):
-    if D < datetime.date(D.year, 1, 25) or (datetime.date(D.year, 6, 1) <= D < datetime.date(D.year, 6, 25)):
-        return 0  # session
-    elif datetime.date(D.year, 9, 1) <= D or (datetime.date(D.year, 2, 6) <= D < datetime.date(D.year, 6, 1)):
-        return 1  # semester
-    else:
-        return 2  # vacations
-
-
 
 
 def sttime(D):
@@ -261,20 +214,6 @@ def sttime(D):
         return 2 * 60
 
 
-week = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
-month = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь",
-         "Декабрь", None]
-situat = ["Нестабильная", "Стабильная", None]
-
-dtm = ""
-
-
-def showtime():
-    prn(0, 0,
-        f"{week[D.weekday()]}, {D.day()}.{D.month()}.{D.year()}  Осталось {params.Time / 60} ч. {params.Time % 60} мин. ")
-    prn(0, 32, dtm)
-
-
 def showhelp():
     s = ''
     prn(0, 0, f"Game │ BBS Upgrade Job Learn Soft Echoes Points Friends Time Next day")
@@ -282,21 +221,6 @@ def showhelp():
     # free(s)
 
 
-end1 = ("", "а", "ов")
-end2 = ("день", "дня", "дней")
-
-
-def end(x, ending=end1):
-    if 10 < x <= 20:
-        # if x<=20 and x>10:
-        return ending[2]
-    x = x % 10 - 1
-    return ending[1] if x < 4 else ending[2]
-
-
-mtok = lambda x: (x) << 10
-
-BB = lambda: you.hdspace < mtok(hd[you.hd])
 
 
 def showstat(y=1, x=22, c=0x30, c2=0x3F):
@@ -482,51 +406,6 @@ def code(name):
 #     os.close(M.f)
 #     return 1
 
-def yn(qst, ans=0, c1=0x70, c2=0xF):
-    ls = 0
-    k = 0
-    i = 0
-    s = 1
-    n = 1
-    while qst[i]:
-        if qst[i] == '\n':
-            if k > ls:
-                ls = k
-            k = 0
-            n += 1
-        else:
-            k += 1
-        i += 1
-    if k > ls:
-        ls = k
-    ll = max(ls + 4, 28)
-    t = 10
-    l = (78 - ll) >> 1
-    # q = openbox(t, l, t + 5 + n, l + ll, c1)
-    write(t + 2, l + 2, qst)
-    if ans:
-        s = ans
-    while (True):
-        prnc(t + 3 + n, l + 2, " А как же! ", c2 if s == 1 else c1)
-        prnc(t + 3 + n, l + ll - 12, " Вот еще!  ", c1 if s == 1 else c2)
-        if ans:
-            delay(1000)
-            break
-        c = getch()
-        if c == 13:
-            break
-        elif c == 75:
-            if s == 1:
-                s = 2
-            else:
-                s -= 1
-        elif c == 77:
-            if s == 2:
-                s = 1
-            else:
-                s += 1
-    # closebox(t, l, t + 5 + n, l + ll, q)
-    return s == 1
 
 
 def OSinfo(n):
@@ -535,65 +414,8 @@ def OSinfo(n):
     write(14, 2, s)
 
 
-def instOS(n=0):
-    o = None
-    i = None
-    y = 10
-    x = 0
-    res = 0
-    Time = 30  # ?????? тут этого не должно быть
-    if not n:
-        # q = openbox(13, 0, 16, 22, 0x30)
-        o = menuf(12, 25, 0x70, 0x0F, OSnames, "Install", 1, OSinfo)
-        # closebox(13, 0, 16, 22, q)
-    else:
-        o = n + 1
-    while (1):
-        if o:
-            o -= 1
-            if os[o]['memory'] > Time:
-                message("Сегодня не успеем...", 0x4F)
-                break
-            if os[o]['mincomp'] > you.comp:
-                message("У вас слишком хилый компьютер!", 0x4F)
-                break
-            if you.soft + os[o]['memory'] > you.hdspace:
-                message("Не хватает места на винте!", 0x4F)
-                break
-            # q = openbox(y, x, y + 6, x + 40, 0x0F)
-            prn(0, 0, f"Installing {OSnames[o]}...")
-            # prn(y + 1, x + 1, s)
-            for i in range(1, os[o]['itime'] + 1):
-                percent = 100 if i == os[o]['itime'] else i * 100 / os[o]['itime']
-                prn(0, 0, f"{percent} complete")
-                s = ''
-                prn(y + 3, x + 2, s)
-                Time -= 1
-                showtime()
-                if o > 0 and _rnd(400 / (you.skill[1] + 1)) and not _rnd(10):
-                    message("Глюки!!! Придется переинсталлировать заново...", 0x4F)
-                    break
-                delay(400)
-            # closebox(y, x, y + 6, x + 40, q)
-            you.os = o
-            res = 1
-            if you.osreq:
-                you.wdate = D + 6
-    return res
 
 
-def fire():
-    chrep(-random.randint(0, 10) - 5)
-    you.skill[you.wprof] -= 15
-    if you.skill[you.wprof] < 0:
-        you.skill[you.wprof] = 0
-    chmood(-15 - random() * (you.income) / (you.wtime / 60.0) / 8)
-    you.ftime += you.wtime
-    you.wtime = 0
-    you.wdays = 0
-    you.income = 0
-    you.wprof = 0
-    you.osreq = 0
 
 
 def expel():
@@ -609,17 +431,6 @@ def expel():
         you.army = 3
 
 
-def newjob(pay, time, prof):
-    if you.wdays > 7:
-        you.money += you.income * (float(you.wdays % 30) / 30)
-    you.ftime += you.wtime
-    you.wtime = time
-    you.ftime -= you.wtime
-    you.wprof = prof
-    you.income = pay
-    you.wdays = 0
-    you.osreq = 0
-    you.wdate = 0
 
 
 def newinfo(i):
@@ -679,91 +490,6 @@ def joffer(wait=1):
                     newjob(vars[j][0], vars[j][1], vars[j][2])
 
 
-
-
-def proposal(i):
-    from_ = ["Don Carleone", "Vasya Pupkin", "Sergey Mavrodi"]
-    d = 0
-    summ = 0
-    pay = 0
-    s = ''
-    if i == 1:
-        summ = random.randint(0, you.skill[1] * 5) + 100
-        s = (f"Есть деловое предложение для крутого хакера.\n"
-             f"Надо взломать кой-какую защиту. Плачу ${summ}.")
-        d = random.randint(0, 5) + 2
-
-    if i == 2:
-        summ = random.randint(0, 4) * 10 + 20
-        s = f"Я слышал, вы можете компьютер наладить. За ${summ} возьметесь?"
-        d = 1
-
-    if i == 3:
-        pay = random.randint(0, you.skill[3]) * 5 + 50
-        summ = pay * (2 + random.randint(0, 4))
-        s = f"Предлагаю выгодный совместный бизнес.\nВложив всего ${pay}, вы получите ${summ}!"
-        d = random.randint(0, 4) + 2
-
-    fidomess(from_[i - 1], you.name, "Предложение", s)
-    if not yn("Вы принимаете предложение?"):
-        return 0
-
-    params.Down += d
-    you.money -= pay
-    s = None
-    prn(0, 0, f"Напряженный труд занял {d} {end(d,end2)}...")
-    newdayf = 1
-    while (d):
-        newday()
-        d -=1
-
-    if i == 1:
-        if random.randint(0, summ) > you.skill[1] * 2:
-            message("Ничего не вышло. Защита оказалась слишком сложной для вас.\n"
-                    "Это не пойдет на пользу вашей профессиональной репутации.", 0x4F)
-            you.skill[1] -= random.randint(0, 5)
-            # break
-        elif not _rnd(you.skill[1] >> 7):
-            s = (f"У вас крупные неприятности. Те, чью защиту вы ломали, пожелали\n"
-                 f"узнать, кто это такой умный, и им это удалось. Придется вам\n"
-                 f"заплатить им ${summ * 2}, и считайте, что дешево отделались!\n")
-            summ -= 2 * summ
-            you.skill[1] -= random.randint(0, 10)
-            message(s, 0x4F)
-        else:
-            you.skill[1] += random.randint(0, 5)
-            message("Нет такой защиты, которую нельзя было бы сломать!", 0x1F)
-            you.money += summ
-
-    if i == 2:
-        if not _rnd(you.skill[2] >> 7):
-            message("Вам не удалось совладать с железом заказчика\n"
-                    "Это не пойдет на пользу вашей профессиональной репутации.", 0x4F)
-            you.skill[2] -= random.randint(0, 5)
-        else:
-            you.skill[2] += random.randint(0, 5)
-            message("Не так страшно кривое железо, как кривые руки...\n"
-                    "К счастью, вы этим не страдаете!", 0x1F)
-            you.money += summ
-
-    if i == 3:
-        if random.randint(0, pay) > you.skill[3] * 2:
-            message("Плакали ваши денежки...", 0x4F)
-            you.skill[3] -= random.randint(0, 5)
-            # break
-        elif not _rnd(you.skill[3] >> 7):
-            s = (f"Пора бы знать, что честный бизнес таких прибылей не приносит.\n"
-                 f"Те, кого вы пытались кинуть, оказались не лохами, и теперь \n"
-                 f"вам придется заплатить им ${summ}!\n")
-            message(s, 0x4F)
-            summ -= summ
-            you.skill[3] -= random.randint(0, 10)
-        else:
-            you.skill[3] += random.randint(0, 5)
-            message("Дело было рискованным, но риск себя оправдал.", 0x1F)
-            you.money += summ
-    # free(s)
-    return 1
 
 # def test(tst, N, y, x):
 #     j = random(N)
@@ -1056,41 +782,6 @@ def setpref(list):
             list[i] = s
 
 
-def vircheck(y, x):
-    q = None
-    i = 0
-    t = 0
-    if not you.antiv.date:
-        message("Дык нету у вас антивируса!", 0x4F)
-        return 0
-    t = int(you.soft / (1024 + you.comp * 2048))
-    if t >= params.Time:
-        message("Сегодня не успеем провериться...", 0x4F)
-        return 0
-    # q = openbox(y, x, y + 6, x + 40, 0x0F)
-    prn(y + 1, x + 1, "Antivirus starts...")
-    s = 'salloc(15)'
-    for i in range(t + 1):
-        percent_complete = 100 if i == t else i * 100 / t
-        prn(0, 0, f"{percent_complete} complete")
-        prn(y + 3, x + 2, s)
-        params.Time -= 1
-        showtime()
-        delay(400)
-    lstscn = D
-    i = you.virus / (random() * ((D - you.antiv) >> 3) + 1)
-    if i:
-        prn(0, 0, f"{i} virus(es) found & cured!")
-        you.virus -= i
-        prnc(y + 4, x + 1, s, 0x0C)
-    else:
-        prn(y + 4, x + 1, "No viruses found")
-    if D - you.antiv > 16:
-        prn(y + 5, x + 1, "Warning: you antivirus is too old!")
-    anykey()
-    # closebox(y, x, y + 6, x + 40, q)
-    # free(s)
-    return i
 
 
 def wear(reli):
@@ -1623,280 +1314,6 @@ import random
 import datetime
 
 
-def newday():
-    i = k = t = mpr = cpr = 0
-    res = 0
-    q = None
-    l = b = 0
-    arm = ["Откупиться", "Прятаться у друзей", "Идти служить", None]
-    s = ""
-
-    if you.tired - (params.Time < 6 * 60) / 30 >= 0:
-        you.tired -= (params.Time < 6 * 60) / 30
-    else:
-        you.tired = 0
-    if (you.tired - params.Time / 30.0 * 4) <= 0:
-        you.tired = 0
-    else:
-        chmood(-you.tired % 50)
-    params.D += 1
-    params.Time = 20 * 60
-
-    if you.tired > 32:
-        t = (8 + random.randint(0, 4)) * 60 + 10 + random.randint(0, 10) * 5
-        s = f"Вы проспали {t // 60} часов {t % 60} минут!"
-        params.Time -= t
-        if (you.tired - t / 30.0 * 4) <= 0:
-            you.tired = 0
-        message(s, 0x4F)
-
-    you.money += round(you.expens / 30.0)
-
-    if not random.randint(20):  # dequalification
-        while (i := random.randint(1, 3)) == you.sprof or i == you.wprof:
-            pass
-        if you.skill[i] > 0:
-            you.skill[i] -= 1
-
-    if not random.randint(40):  # устаревание софта
-        incsoft(-random.randint(max(you.soft >> 7, min(you.soft, 500))), 0)
-
-    showtime()
-
-    if params.D.month() == 1 and params.D.day() == 1:
-        message("\n C Новым Годом! \n", 0x1F)
-        for i in range(10):
-            if bbs[i].mxtime == -1:
-                bbs[i].mxtime = 0
-        params.Down += 1
-        chmood(random.randint(10))
-        you.tries = 0
-
-    if (params.D.month() == 6 or params.D.month() == 1) and you.army == 2 and params.D - SD > 2 * 30:
-        you.army = 3
-
-    if you.sdays == -1 and params.D.month() == 9 and params.D.day() == 1:
-        you.spay = -30
-        you.sdays = 1
-        message(
-            "Вот и началась ваша учеба в институте.\nТеперь вы будете получать $30 стипендии.\nОгромные деньги, не правда ли?",
-            0x1F)
-
-    if params.D == you.grad:
-        if you.spay < 0:
-            s = "Вас есть с чем поздравить - вы окончили институт" + (
-                " с красным дипломом" if you.mark >= 4.75 else "") + "!"
-            you.skill[you.sprof] += you.mark * 10
-            you.army = 0
-            message(s, 0x1F)
-        else:
-            message("Вы окончили платные курсы.", 0x1F)
-            you.skill[you.sprof] += 10
-        you.sprof = 0
-        you.spay = 0
-
-    if you.army == 3 and (params.D.month() == 4 or params.D.month() == 10) and not random.randint(7):
-        message("         Пришла повестка на бумажке!!!\nГоворила вам мама - надо в институт поступать...", 0x4F)
-        if not Stable:
-            i = menu(12, 25, 0x70, 0x0F, arm, "Варианты", 1)
-            while i == 0:
-                pass
-            # match i:
-            if i == 1:
-                # q = openbox(10, 29, 14, 52, 0x70)
-                prn(12, 30, "Сколько дать? $    00")
-                k = 0
-                # i = nmbrscrl( & k, 12, 45, min(999, you.money // 100), 1, 1)
-                # closebox(10, 29, 14, 52, q)
-                you.money -= k * 100
-                if random.randint(k) >= 20:
-                    message("Считайте, что военкомат забыл о вас навсегда!", 0x1F)
-                    you.army = 0
-                elif random.randint(k) > 5:
-                    message("Вам дали отсрочку до следующего призыва.", 0x1F)
-                    you.army = 2
-                else:
-                    message("Взятка не помогла! То ли честный попался, то ли мало дали...", 0x4F)
-                    # goto oblom
-            if i == 2:
-                if random.randint(you.friends):
-                    message("На сей раз вы отсиделись, но друзья не могут прятать вас вечно...", 0x1F)
-                else:
-                    message("Увы, никто не смог вам помочь...", 0x4F)
-            # case _:
-            #     goto
-            #     oblom
-        else:
-            # oblom: block(1, 24, 0x4F)
-            message("Вас забрали в армию. Вот, собственно, и все...", 0x4F)
-            quit(2)
-
-    if params.D.weekday() == 6 and _month(params.D + 7) != params.D.month() and you.status:
-        if yn("Пойдете на сисопку?"):
-            t = min(params.Time - 1, 4 * 60 + random.randint(8 * 60))
-            params.Time -= t
-            chmood(t // 90 + random.randint(you.friends))
-            you.money -= random.randint(t // 60)
-            you.friends += (random.randint(t // 180) > 0)
-            message("Как ни странно, общаться можно не только по модему...", 0x1F)
-
-    for i in range(4):
-        (occup[i].func)()
-        showtime()
-
-    if not params.Down and auto_[3] and you.antiv.date and params.D.days() >= lstscn.days() + auto_[3]:
-        vircheck(2, 4)
-
-    if you.spay > 0 or you.spay < 0 and studper(params.D) != 2:
-        you.sdays += 1
-
-    if params.D.day() < 20 and random.randint(10) < random.randint(you.friends) and you.money > 100:
-        l = random.randint(you.money >> 3) + 5
-        s = f"Друг просит ${l} в долг до конца месяца. Дадите?"
-        if yn(s, auto_[1]):
-            you.money -= l
-            you.debt -= l
-            chrep(random.randint(3) + 1)
-        else:
-            message("Жадность не способствует дружбе...", 0x4F, 1 + auto_[1])
-            if random.randint(you.money / l) > 8:
-                you.friends -= 1
-
-    if you.wtime > 0 and params.D.weekday() < 5:
-        if params.D >= you.wdate:
-            you.wdate = 0
-            if you.osreq and you.os != you.osreq:
-                message("Вы и ваш софт не подходите для этой работы. Вы уволены!", 0x4F)
-                fire()
-            elif random.randint(you.income) > 80 + (i := random.randint(5) + 1) * 80 and not you.wdate.Date and (
-                    you.osreq == i) != you.os:
-                s = f"Ваша работа требует перехода на {OSnames[you.osreq]}\nУ вас в запасе 6 дней."
-                message(s, 0x4F)
-                you.wdate = params.D + 6
-                if auto_[2] == 1:
-                    instOS(you.osreq)
-
-    for i in range(10):
-        if not random.randint(20):
-            bbs[i].down = not bbs[i].down
-            if not bbs[i].down:
-                bbs[i].modem = random.randint(6)
-
-    if not Stable:
-        if not random.randint(60) and you.money > 300:
-            l = random.randint(you.money >> 1) + 50
-            s = f"Из-за финансового кризиса вы потеряли ${l}"
-            message(s, 0x4F)
-            chmood(-l / you.money * 32.0)
-            you.money -= l
-        if you.wprof:
-            if not random.randint(50):
-                message("Из-за экономического кризиса ваша фирма лопнула,\n      и вы потеряли работу!", 0x4F)
-                you.wdays = 0
-                chmood(-10)
-                newjob(0, 0, 0)
-            elif not random.randint(40):
-                k = random.randint(50) + 1
-                s = f"Из-за экономического кризиса ваша зарплата уменьшена на {k}%"
-                message(s, 0x4F)
-                chmood(-(k >> 2))
-                you.income *= 1 - k / 100.0
-
-    if not params.Down:
-        if you.comp != 0xFF:
-            you.virus += random.randint(you.virus + 1)
-            if random.randint(you.virus >> 3) and (l := random.randint(you.soft >> 1)):
-                s = f"Злобные вирусы погрызли {l}K вашего КРУТОГО СОФТА!"
-                message(s, 0x4F)
-                # chmood(-(float(l) / (you.soft + 1) * 50 * (2 - (1.0 + random.randint(you.soft >> 9) / (1 + (you.soft >> 8))))))
-                incsoft(-l)
-
-                # if wear( & you.hreli):
-                # if random.randint(3):
-                #     if
-                # l := random.randint(you.soft):
-                # s = "                        У вас покрылся винт!\nК счастью, не насмерть, но {l}K КРУТОГО СОФТА погибли безвозвратно"
-                # message(s, 0x4F)
-                # chmood(-(float(l) / (you.soft + 1) * 50 * (
-                #             2 - (1.0 + random.randint(you.soft >> 9) / (1 + (you.soft >> 8)))))
-                # incsoft(-l)
-                # else:
-                # b = random.randint((long(hd[you.hd]) << 6))
-                # if b > you.hdspace - (3 << 10):
-                #     b = you.hdspace - (3 << 10)
-                # b = (b >> 2) << 2  # block=4K
-                # if b:
-                #     l = you.soft * float(b) / you.hdspace
-                # i = sprintf(s, "У вас посыпался винт! {b}K ушло в бэд блоки.")
-                # if l:
-                #     sprintf(s + i, "\n{l}K КРУТОГО СОФТА погибли безвозвратно.")
-                # message(s, 0x4F)
-                # you.hdspace -= b
-                # chmood(-(float(l) / (you.soft + 1) * 50 * (
-                #             2 - (1.0 + random.randint(you.soft >> 9) / (1 + (you.soft >> 8)))))
-                # incsoft(-l)
-                #
-                # if you.hdspace < os[you.os].size or l > (you.soft >> 1):
-                #     s = f"Порушилась операционная система...\nГрузим с дискетки {OSnames[0]}"
-                # message(s, 0x4F)
-                # chmood(-random.randint(you.os + 1))
-                # you.os = 0
-                # params.Time -= os[0]['itime']
-                # if params.Time < 1:
-                #     params.Time = 1
-                # chmood(-2)
-                # if you.osreq:
-                #     you.wdate = D + 6
-                #
-                # elif wear( & you.creli):
-                #     match
-                # random.randint(5):
-                # case
-                # 0:
-                # k = random.randint(7) + 1
-                # s = (f"Сегодня черный день в вашей жизни! Скончался ваш компьютер...\n"
-                #      f"      Вы в трауре, станция в дауне на {k} {end(k, end2)}...")
-                # message(s, 0x4F)
-                # chmood(-8 * (you.comp + 1))
-                # Down += k
-                # you.comp = 0xFF
-                # setbit(res, 1)
-                # buycomp(k)
-                # case
-                # 1 | 2 | 3:
-                # i = random.randint(cprice[you.comp]) + 1
-                # k = random.randint(3) + 2
-                # s = f"  Вашему компьютеру потребовался ремонт.\nЭто обошлось вам в ${i} и {k} дня дауна..."
-                # message(s, 0x4F)
-                # Down += k
-                # if decmoney(i):
-                #     chmood(-10)
-                # else:
-                #     chmood(-i * 50 / (you.money + i))
-                #
-                # elif wear( & you.mreli):
-                # k = random.randint(4) + 1
-                # s = f"Горе-то какое... Модем у вас сгорел, однако!\nВаша станция в дауне на {k} {end(k, end2)}..."
-                # message(s, 0x4F)
-                # Down += k
-                # chmood(-4 * (you.modem + 1))
-                # you.modem = 0xFF
-                # setbit(res, 0)
-                # buymodem(k)
-                #
-                # if D.day() == SD.day():
-                #     if
-                # you.wdays < 30:
-                # if you.wdays >= 7:
-                #     you.money += you.income * (float(you.wdays % 30) / 30)
-                # else:
-                #     you.money += you.income
-                # you.money -= you.spay
-                #
-                # if you.debt < 0:  # должны тебе
-                #     if
-                # random.randint(you.reput / 8) > you.friends:
-                # l = you.debt
 
 
 # def initech():
@@ -1918,8 +1335,6 @@ def newday():
 #     return echoes
 
 
-def delay(ms):
-    time.sleep(ms / 1000)
 
 
 def setbmpal(addr, palsz):

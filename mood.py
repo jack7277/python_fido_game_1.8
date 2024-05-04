@@ -1,6 +1,5 @@
-from person import you
-from wnds import message
-import init
+from person import *
+from wnds import *
 
 
 def chmood(dm):
