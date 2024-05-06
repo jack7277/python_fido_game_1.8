@@ -1,6 +1,7 @@
 import random
 import time
 
+import fido_date
 from fido_date import *
 from fido_random import _rnd
 from mood import *
@@ -169,8 +170,8 @@ lstscn = fido_date.Date()
 newdayf = 0
 LE = 10
 BBSf = 0
-D = fido_date.Date()
-SD = fido_date.Date()
+D = fido_date.Date()  # current Date
+SD = fido_date.Date()  # Start Date
 E = LE + 1
 Stable = 0
 Log = 0
@@ -181,7 +182,7 @@ newm = 0
 newc = 0
 newh = 0
 alltime = 0
-Down = 0
+Down = 0  # признак не работает ббс, DOWN да нет
 City = 0
 maxpnt = 0
 auto_ = [0, 0, 0, 0]  # link, debt, OS, antivirus
@@ -200,9 +201,15 @@ def scrsa(y, x, w):
     scrw[(y) * 80 + (x)] = (w)
 
 
+
 def end(x, ending=end1):
+    """
+    Добавляет окончание пустое, А или ОВ
+    :param x:
+    :param ending:
+    :return:
+    """
     if 10 < x <= 20:
-        # if x<=20 and x>10:
         return ending[2]
     x = x % 10 - 1
     return ending[1] if x < 4 else ending[2]
@@ -274,13 +281,6 @@ def yn(qst, ans=0, c1=0x70, c2=0xF):
 
 
 
-def studper(D):
-    if D < Date(D.year, 1, 25) or (Date(D.year, 6, 1) <= D < Date(D.year, 6, 25)):
-        return 0  # session
-    elif Date(D.year, 9, 1) <= D or (Date(D.year, 2, 6) <= D < Date(D.year, 6, 1)):
-        return 1  # semester
-    else:
-        return 2  # vacations
 
 
 def delay(ms):
@@ -301,10 +301,6 @@ def fire():
     you.osreq = 0
 
 
-def showtime():
-    prn(0, 0,
-        f"{week[D.weekday()]}, {D.day()}.{D.month()}.{D.year()}  Осталось {Time / 60} ч. {Time % 60} мин. ")
-    prn(0, 32, dtm)
 
 
 # Define the toccup structure as a class

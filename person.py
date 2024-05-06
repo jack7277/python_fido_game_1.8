@@ -54,12 +54,3 @@ class Person:
 you = Person()
 
 
-def incsoft(ds, chrp=1):
-    mem1 = you.soft + params.os[you.os]['memory'] + ds
-    if mem1 > you.hdspace:
-        ds = you.hdspace - you.soft - params.os[you.os]['memory']
-    if not ds:
-        return 0
-    chrep(random_(ds * you.status / 512) / 2, chrp)
-    you.soft += ds
-    return ds

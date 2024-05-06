@@ -5,6 +5,10 @@ URL: http://yun.complife.net
 e-mail: comte@au.ru
 При внесении любых модификаций указание моих копирайтов обязательно
 """
+from OS import instOS
+from init import echoes
+from stat import showstat
+from upgrade import incsoft, buysoft, buycomp, buymodem, buyhd
 
 """
 Remake by jack7277 @ 2024
@@ -12,9 +16,8 @@ Remake by jack7277 @ 2024
 
 import sys
 from random import random
-import fido_date
 from echo import *
-from fido_random import random_, _rnd, lrandom
+from fido_random import _rnd, lrandom
 from person import *
 from wnds import *
 
@@ -62,10 +65,10 @@ def delecho(n):
 
 
 def final(st):
-    s = ' ' * 1024
+    s = ''
     ar = [0] * (80 * 24)
     
-    s = (f"{st}{D - SD} {end(D - SD, end2)}. За это время вы потратили\n"
+    s = (f"{st} {D - SD} {end(D - SD, end2)}. За это время вы потратили\n"
          f"на почту {alltime // (24 * 60)} сут. {(alltime % (24 * 60)) // 60} ч. {alltime % (24 * 60) % 60} мин. чистого времени, "
          f"получили {pluses} плюс{end(pluses)}\n"
          f"в конференциях, сменили {newm} модем{end(newm)} и {newc} компьютер{end(newc)}.")
@@ -193,13 +196,6 @@ def nmbrscrl(n, y, x, mx=99, mn=0, dn=1):
 
 
 
-def sttime(D):
-    if not you.spay:
-        return 0
-    elif you.spay < 0:
-        return 0 if studper(D) == 2 else 6 * 60.0 * you.intens / 100.0
-    else:
-        return 2 * 60
 
 
 def showhelp():
@@ -208,72 +204,6 @@ def showhelp():
     prncc(24, 0, s, 0x70)
 
 
-def showstat(y=1, x=22, c=0x30, c2=0x3F):
-    mood = ["==8~-(E (", "=8~-((", "8~-(", ":~-(", ":-(", ":-/", ":-I", ";-I", ";-)", ":-)", "Ж:-)", "Ж:-))", "Ж8-D",
-            "Ж|-))", "Ж|-)))", "Ж|-)))"]
-    s = ""
-    i = 0
-    import wnds
-    wnds._box(y, x, y + 17 + you.sysop + you.moder, x + 55, c, SDB)
-    prnc(y + 1, x + 2, you.name, c2)
-    prn(y + 2, x + 2, f"Статус: {status[you.status]}")
-    if you.status > 1:
-        prn(0, 0, "(%d поинт%s)" + str(you.points) + ' ' + end(you.points))
-        # prnc(y+2, x+17, s, c2)
-    if you.sysop:
-        y += 1
-        prn(0,0,f"Сисоп %c%s BBS {bbsnames[11]}")
-        if Down or you.modem == 0xFF:
-            prn(0, 0, f'{s + str(i)} (в дауне)')
-        else:
-            prn(0, 0, f'{s + str(i)} требует {round(75 * (you.modem + 1) * .1 + 10)} мин.в день')
-        # prncc(y+2,x+2,s,c)
-    for i in range(you.moder):
-        prn(y + 3 + i, x + 3, "Модератор ")
-        prnc(y + 3 + i, x + 3 + 10, echoes[LE + 1 + i].name, c2)
-    y += you.moder
-    prn(0, 0, f"Репутация: {you.reput}")
-    # prncc(y+3,x+2,s,c)
-    if (you.comp | you.modem) == 0xFF:
-        prnc(y + 4, x + 2, "Проблемы с hardware!", c2)
-    else:
-        prn(0, 0, f"Компьютер {comp[you.comp]} Модем на {bps[you.modem]}")
-        # prncc(y+4,x+2,s,c)
-    for i in range(1, 4):
-        prn(0, 0, f"{profn[i]} {you.skill[i]}")
-        # prncc(y+5+i,x+2,s,c)
-    prn(0, 0, f"Работа: {profn[you.wprof]} З/п {you.income} Стаж {you.wdays} д.")
-    # prncc(y+9,x+2,s,c)
-    y += 4
-    prn(0, 0, f"Учеба: {profn[you.sprof]}")
-    if you.spay < 0:
-        # p = stper[studper(D)]
-        p = 3
-        prn(0, 0, f" {p} Ср.балл {you.mark}")
-    # prncc(y+9,x+2,s,c)
-    y += 4
-    wtime = sttime(D)
-    prn(0, 0, f"Время/сут.: {you.wtime / 60.0} Работа {wtime / 60.0} Учеба  Своб. {(you.ftime - wtime) / 60.0}")
-    # prncc(y+6,x+2,s,c)
-    mem = os[you.os]['memory'] >> 10
-    prn(0, 0, f"ОC: {OSnames[you.os]} занимает {mem} МБ")
-    if you.osreq:
-        prn(0, 0, f'{s + str(i)} Надо {OSnames[you.osreq]}')
-    # prncc(y+7,x+2,s,c)
-    prn(0, 0, f"{you.soft}К КРУТОГО СОФТА")
-    if you.antiv:
-        prn(0, 0, f'Антивирус от {you.antiv.day()}.{you.antiv.month()}.{you.antiv.year()}')
-    # prncc(y+8,x+2,s,c2)
-    d = you.spay if you.spay < 0 else 0
-    d2 = you.spay if you.spay > 0 else 0
-    prn(0, 0, f"Месячный доход/расход {you.income - d}$/~${-you.expens + d2}  Долги {you.debt}")
-    # prncc(y+9,x+2,s,c)
-    prn(0, 0, f"Всего денег {you.money}    Друзей: {you.friends}")
-    # prncc(y+10,x+2,s,c)
-    prn(0, 0, f"Настроение: {you.mood} хорошего {mood[int(you.mood / 10)]}  Усталость {you.tired}")
-    # prncc(y+11,x+2,s,c)
-    showtime()
-    # free(s)
 
 
 class Memfile:
@@ -737,111 +667,6 @@ def wear(reli):
     return i > reli and not random() * (4 + (echoes[8].read != 0) + (you.skill[2] >> 4))
 
 
-def decmoney(x):
-    if (you.money - x) < 0:
-        message("Вы залезли в долги! Это может плохо кончиться!", 0x4F)
-        return 1
-    else:
-        return 0
-
-
-def echlink(echn=0, y=4, x=10):
-    q = None
-    i = 0
-    j = 0
-    traf = 0
-    sel = 0
-    c = 0
-    marks = [' ', '√', 'p']
-    if echn:
-        sel = echn
-        if echoes[sel].stat:
-            return 1
-    else:
-        sel = 2
-
-    prnc(y + 1, x + 1, "From : ", 0x13)
-    prnc(y + 1, x + 8, you.name, 0x1F)
-    prnc(y + 2, x + 1, "To   : AreaFix", 0x13)
-    for i in range(x + 1, x + 40):
-        scrs(y + 3, i, '─')
-    scrs(y + 3, x, 195)
-    scrs(y + 3, 40 + x, 180)
-    for i in range(2, params.E):
-        prn(y + 2 + i, x + 2, echoes[i].name)
-        if echoes[i].stat:
-            scrs(y + 2 + i, x + 1, '+')
-            traf += echoes[i].traf
-    # select:
-    for i in range(x + 2, x + 30):
-        scra(y + 2 + sel, i, 0x0F)
-    c = getch()
-    # switch(upcase(c)):
-    if c.upper() == 27:
-        c = 0
-        # goto(all)
-    if c.upper() == 13:
-        # selected:
-        c = 1
-        # all:
-        if not check_traffic(traf):
-            echn = 0
-            # goto(select)
-        if echn and not echoes[echn].stat:
-            c = 0
-        for i in range(LE + 1, params.E):
-            if not echoes[i].stat:
-                # delecho(i)
-                chrep(-4 - random.randint(0, 3))
-            else:
-                i += 1
-        return c
-
-    if c.upper() == 32:
-        if echoes[sel].stat:
-            echoes[sel].stat = 0
-            traf -= echoes[sel].traf
-            scrs(y + 2 + sel, x + 1, '-')
-            if sel > LE:
-                message("Учтите - ваша эха без вас не выживет!", 0x4F)
-        else:
-            if echoes[sel].plus < 3:
-                if check_traffic(traf + echoes[sel].traf):
-                    traf += echoes[sel].traf
-                    echoes[sel].stat = 1 if sel <= LE else 2
-                    echoes[sel].dl = D
-                    echoes[sel].msg = echoes[sel].newm = echoes[sel].new1 = 0
-        if echn:
-            # goto(selected)
-            pass
-        # break
-    if c.upper() == 73:  # PgUp
-        if sel > 2:
-            for i in range(x + 2, x + 30):
-                scra(y + 2 + sel, i, 0x1E)
-            sel = 2
-        # break
-    if c.upper() == 81:  # PgDn
-        if sel < params.E - 1:
-            for i in range(x + 2, x + 30):
-                scra(y + 2 + sel, i, 0x1E)
-            sel = params.E - 1
-        # break
-    if c.upper() == 72:
-        for i in range(x + 2, x + 30):
-            scra(y + 2 + sel, i, 0x1E)
-        sel = params.E - 1 if sel == 2 else sel - 1
-        # break
-    if c.upper() == 80:
-        for i in range(x + 2, x + 30):
-            scra(y + 2 + sel, i, 0x1E)
-        sel = 2 if sel == params.E - 1 else sel + 1
-        # break
-    # goto(select)
-    # all:
-
-    return 0
-
 
 def readres(k):
     if Style == 3:
@@ -960,319 +785,15 @@ def echread(au=1, y=6, x=2):
     # goto(select)
     # all:
 
+    if traf:
+        k = traf / 40 % 20
+        readres(k)
+
     return 0
 
 
 def tstbit(x, n):
     return (x & (1 << n)) != 0
-
-
-def buycomp(wait=0):
-    ar = [None] * 8
-    var = [None] * 6
-    vars = [[0] * 2 for _ in range(5)]  # цена, надежность
-    warn = "Не можете же вы жить совсем без компьютера!"
-    s = [None] * 12 * 5
-    q = None
-    i = 0
-    n = 0
-    k = 0
-    j = 0
-    cpr = 0
-    if not wait:
-        j = random.randint(0, 2) + 2
-        s = "На поиск предложений ушли " + str(j) + " " + end(j, end2) + "..."
-        message(s, 0x71)
-    else:
-        j = wait
-    for _ in range(j):
-        pass
-        # if tstbit(newday(), 1):
-        #     goto(all)
-    cpr = 0 if you.comp == 0xFF else cprice[you.comp] * 0.9
-    while cprice[i] <= you.money and i < 7:
-        ar[i] = comp[i]
-        i += 1
-    ar[i] = None
-    q = 'malloc(22*10*2)'
-    # gettext(4, 11, 25, 20, q)
-    # sel:
-    i = menuncl(10, 3, 0x2F, 0x0F, ar, "Компьютеры", 1)
-    if i:
-        i -= 1
-        n = 1 + random.randint(0, echoes[3].read // 25)
-        for k in range(n):
-            vars[k][1] = 24576 + random.randint(0, 8192)
-            vars[k][0] = cprice[i] * (0.8 if you.skill[3] > 640 else (1.2 - you.skill[3] / 1600.0)) * vars[k][1] / (
-                        24576 + random.randint(0, 8192))
-            s = "$%-4d  " % vars[k][0]
-            if echoes[4].read:
-                s += "  %2d%%" % (vars[k][1] * 100 // 32768)
-            var[k] = s
-        var[n] = None
-        # sel1:
-        j = menu(10, 14, 0x70, 0x0F, var, " Цена  ��адежн." if echoes[4].read else "Цена", 1)
-        if not j and you.comp == 0xFF:
-            message(warn, 0x4F)
-            # goto(sel1)
-        if j:
-            decmoney(vars[j - 1][0] - cpr)
-            if you.comp != 0xFF:
-                chmood((i - you.comp) * (random.randint(0, 3) + 1))
-            you.comp = i
-            you.creli = vars[j - 1][1]
-            if os[you.os].mincomp > you.comp:
-                you.os = 0
-                if you.osreq:
-                    you.wdate = D + 6
-            # newc += 1
-            if cpr:
-                s = "Ваш старый компьютер продан за $" + str(cpr)
-                message(s, 0x71)
-    else:
-        if you.comp == 0xFF:
-            message(warn, 0x4F)
-            # goto(sel)
-    # puttext(4, 11, 25, 20, q)
-    # free(q)
-
-
-# all:
-#     free(s)
-
-def buymodem(wait=0):
-    ar = [None] * 7
-    var = [None] * 6
-    vars = [[0] * 2 for _ in range(5)]  # цена, надежность
-    s = ''
-    q = None
-    i = 0
-    n = 0
-    k = 0
-    j = 0
-    mpr = 0
-    traf = 0
-    if not wait:
-        j = random.randint(0, 2) + 2
-        s = "На поиск предложений ушли " + str(j) + " " + end(j, end2) + "..."
-        message(s, 0x71)
-    else:
-        j = wait
-    for _ in range(j):
-        pass
-        # if tstbit(newday(), 0):
-        #     goto(all)
-    mpr = 0 if you.modem == 0xFF else mprice[you.modem] * 0.9
-    while mprice[i] <= you.money and i < 6:
-        ar[i] = str(bps[i])
-        i += 1
-    ar[i] = None
-    q = 'malloc(14*14*2)'
-    # gettext(4, 11, 15, 24, q)
-    # sel:
-    i = menuncl(10, 3, 0x2F, 0x0F, ar, "Модемы", 1)
-    if i:
-        i -= 1
-        n = 1 + random.randint(0, echoes[3].read // 25)
-        for k in range(n):
-            vars[k][1] = 24576 + random.randint(0, 8192)
-            vars[k][0] = mprice[i] * (0.8 if you.skill[3] > 640 else (1.2 - you.skill[3] / 1600.0)) * vars[k][1] / (
-                        24576 + random.randint(0, 8192))
-            s = "$%-4d  " % vars[k][0]
-            if echoes[4].read:
-                s += "  %2d%%" % (vars[k][1] * 100 // 32768)
-            var[k] = s
-        var[n] = None
-        # sel1:
-        j = menu(10, 14, 0x70, 0x0F, var, " Цена  Надежн." if echoes[4].read else "Цена", 1)
-        # if not j and you.modem == 0xFF:
-        #     message(warn, 0x4F)
-        #     goto(sel1)
-        if j:
-            decmoney(vars[j - 1][0] - mpr)
-            if you.modem != 0xFF:
-                chmood((i - you.modem) * (random.randint(0, 3) + 1))
-            if mpr:
-                s = "Ваш старый модем ��родан за $" + str(mpr)
-                message(s, 0x71)
-            you.modem = i
-            you.mreli = vars[j - 1][1]
-            # newm += 1
-    else:
-        if you.modem == 0xFF:
-            pass
-            # message(warn, 0x4F)
-            # goto(sel)
-    # puttext(4, 11, 15, 24, q)
-    # free(q)
-    # all:
-    #     free(s)
-    if you.status:
-        for i in range(2, params.E):
-            if echoes[i].stat:
-                traf += echoes[i].traf
-        if not check_traffic(traf):
-            echlink()
-
-
-def buyhd(wait=0):
-    ar = [None] * 8
-    var = [None] * 6
-    vars = [[0] * 2 for _ in range(5)]  # цена, надежность
-    s = [None] * 700
-    q = None
-    i = 0
-    n = 0
-    k = 0
-    j = 0
-    hpr = 0
-    if not wait:
-        j = random.randint(0, 2) + 2
-        s = "На поиск предложений ушли " + str(j) + " " + end(j, end2) + "..."
-        message(s, 0x71)
-    else:
-        j = wait
-    for _ in range(j):
-        newday()  # if tstbit(,0) goto all;
-    hpr = (hprice[you.hd] >> 1) * float(you.hdspace) / (hd[you.hd] << 10) if BB() else hprice[you.hd] * 0.9
-    while hprice[i] <= you.money and i < 7:
-        ar[i] = str(hd[i])
-        i += 1
-    ar[i] = None
-    q = 'malloc(14*14*2)'
-    # gettext(4, 11, 15, 24, q)
-    # sel:
-    i = menuncl(10, 3, 0x2F, 0x0F, ar, "Винты", 1)
-    if i:
-        i -= 1
-        n = 1 + random.randint(0, echoes[3].read // 25)
-        for k in range(n):
-            vars[k][1] = 24576 + random.randint(0, 8192)
-            vars[k][0] = hprice[i] * (0.8 if you.skill[3] > 640 else (1.2 - you.skill[3] / 1600.0)) * vars[k][1] / (
-                        24576 + random.randint(0, 8192))
-            s = "$%-4d  " % vars[k][0]
-            if echoes[4].read:
-                s += "  %2d%%" % (vars[k][1] * 100 // 32768)
-            var[k] = s
-        var[n] = None
-        j = menu(10, 14, 0x70, 0x0F, var, " Цена  Надежн." if echoes[4].read else "Цена", 1)
-        # if not j:
-        #     goto(all1)
-        decmoney(vars[j - 1][0] - hpr)
-        chmood((i - you.hd) * (random.randint(0, 3) + 1))
-        if hpr:
-            s = "Ваш старый винт продан за $" + str(hpr)
-            message(s, 0x71)
-        you.hd = i
-        you.hreli = vars[j - 1][1]
-        you.hdspace = hd[you.hd] << 10
-        if you.hdspace < os[you.os].size:
-            you.os = 0
-            if you.osreq:
-                you.wdate = D + 6
-        if you.soft + os[you.os].size > you.hdspace:
-            incsoft(you.hdspace - you.soft - os[you.os].size)
-        # newh += 1
-
-
-# all1:
-#     puttext(4, 11, 15, 24, q)
-#     free(q)
-# all:
-#     free(s)
-
-def buysoft():
-    ar = ["Антивирус", "Софт для работы", "Игрушки", None]
-    var = [None] * 5
-    vars = [[0] * 2 for _ in range(5)]  # цена, объем
-    s = [None] * 15 * 5
-    q = None
-    i = 0
-    n = 0
-    k = 0
-    j = 0
-    cpr = 0
-    if params.Time < 2 * 60 + 5:
-        message("Сегодня не успеем...", 0x4F)
-        # goto(all)
-    params.Time -= 2 * 60
-    q = 'malloc(22*10*2)'
-    # gettext(4, 11, 25, 20, q)
-    # sel:
-    i = menuncl(10, 3, 0x2F, 0x0F, ar, "Виды софта", 1)
-    if i:
-        i -= 1
-        if i == 0:
-            n = 1
-            vars[0][0] = 10
-            vars[0][1] = 0
-        else:
-            n = random.randint(0, 5) + 1
-        for k in range(n):
-            if i:
-                vars[k][1] = 5 + random.randint(0, 200 // i)
-                vars[k][0] = (vars[k][1] * (5 - i * 2 + random.randint(0, 3))) // (i * 2) + random.randint(0, 5) + 1
-            s = "$%-4d  " % vars[k][0]
-            if i:
-                s += "  %3dM" % vars[k][1]
-            var[k] = s
-        var[n] = None
-        # sel1:
-        j = menu(10, 14, 0x70, 0x0F, var, " Цена  Объем" if i else "Цена", 1)
-        # if not j:
-        #     goto(all1)
-        if vars[j - 1][0] > you.money:
-            message("У вас не хватает денег", 0x4F)
-            # goto(sel1)
-        if you.soft + os[you.os].size + vars[j - 1][1] * 1024 > you.hdspace:
-            message("У вас не хватает места на винте", 0x4F)
-            # goto(sel1)
-        decmoney(vars[j - 1][0])
-        you.soft += vars[j - 1][1] * 1024
-        params.Time -= 3 + random.randint(0, 3)
-        if i == 0:
-            you.antiv = D
-        elif i == 1:
-            k = you.wprof if you.wprof else 1
-            you.skill[k] += (vars[j - 1][1] >> 4) * random.randint(0, 3)
-        elif i == 2:
-            chmood((vars[j - 1][1] >> 5) * (random.randint(0, 3) + 4))
-    showstat()
-    showtime()
-    # if params.Time > 5:
-    #     goto(sel)
-
-
-# all1:
-#     puttext(4, 11, 25, 20, q)
-#     free(q)
-# all:
-#     free(s)
-
-
-import random
-import datetime
-
-
-
-
-# def initech():
-#     echoes = []
-#     for i in range(0, LE + 6):
-#         echoes.append(Echo(you))
-#
-#     import echo
-#     echoes[1] = Local()
-#     echoes[2] = Point()
-#     echoes[3] = Exch()
-#     echoes[4] = Bllog()
-#     echoes[5] = Ruanekdot()
-#     echoes[6] = Job()
-#     echoes[7] = Vcool()
-#     echoes[8] = Hardw()
-#     echoes[9] = Softw()
-#     echoes[10] = Fecho()
-#     return echoes
 
 
 
@@ -1774,8 +1295,7 @@ def main():
                     if you.reput > 1000:
                         chmood(you.status * 2)
                         showstat(1, 22, 0x30)
-                        final(
-                            "          Вы избраны сетевым координатором! Поздравляю!\nПуть от юзера до NC занял у вас ")
+                        final("Вы избраны сетевым координатором! Поздравляю!\nПуть от юзера до NC занял у вас ")
                     else:
                         message("Ваша кандидатура не прошла на выборах NC", 0x4F)
 

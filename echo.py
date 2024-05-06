@@ -26,14 +26,6 @@ def check_traffic(traf):
     return 1
 
 
-def incsoft(ds, chrp=1):
-    if you.soft + params.os[you.os].size + ds > you.hdspace:
-        ds = you.hdspace - you.soft - params.os[you.os].size
-    if not ds:
-        return 0
-    chrep(random.randint(0, ds * int(you.status / 512)) / 2, chrp)
-    you.soft += ds
-    return ds
 
 def newday():
     i = k = t = mpr = cpr = 0
@@ -396,3 +388,99 @@ def proposal(i):
     return 1
 
 
+def echlink(echn=0, y=4, x=10):
+    q = None
+    i = 0
+    j = 0
+    traf = 0
+    sel = 0
+    c = 0
+    marks = [' ', '√', 'p']
+    if echn:
+        sel = echn
+        if echoes[sel].stat:
+            return 1
+    else:
+        sel = 2
+
+    prnc(y + 1, x + 1, "From : ", 0x13)
+    prnc(y + 1, x + 8, you.name, 0x1F)
+    prnc(y + 2, x + 1, "To   : AreaFix", 0x13)
+    for i in range(x + 1, x + 40):
+        scrs(y + 3, i, '─')
+    scrs(y + 3, x, 195)
+    scrs(y + 3, 40 + x, 180)
+    for i in range(2, params.E):
+        prn(y + 2 + i, x + 2, echoes[i].name)
+        if echoes[i].stat:
+            scrs(y + 2 + i, x + 1, '+')
+            traf += echoes[i].traf
+    # select:
+    for i in range(x + 2, x + 30):
+        scra(y + 2 + sel, i, 0x0F)
+    c = getch()
+    # switch(upcase(c)):
+    if c.upper() == 27:
+        c = 0
+        # goto(all)
+    if c.upper() == 13:
+        # selected:
+        c = 1
+        # all:
+        if not check_traffic(traf):
+            echn = 0
+            # goto(select)
+        if echn and not echoes[echn].stat:
+            c = 0
+        for i in range(LE + 1, params.E):
+            if not echoes[i].stat:
+                # delecho(i)
+                chrep(-4 - random.randint(0, 3))
+            else:
+                i += 1
+        return c
+
+    if c.upper() == 32:
+        if echoes[sel].stat:
+            echoes[sel].stat = 0
+            traf -= echoes[sel].traf
+            scrs(y + 2 + sel, x + 1, '-')
+            if sel > LE:
+                message("Учтите - ваша эха без вас не выживет!", 0x4F)
+        else:
+            if echoes[sel].plus < 3:
+                if check_traffic(traf + echoes[sel].traf):
+                    traf += echoes[sel].traf
+                    echoes[sel].stat = 1 if sel <= LE else 2
+                    echoes[sel].dl = D
+                    echoes[sel].msg = echoes[sel].newm = echoes[sel].new1 = 0
+        if echn:
+            # goto(selected)
+            pass
+        # break
+    if c.upper() == 73:  # PgUp
+        if sel > 2:
+            for i in range(x + 2, x + 30):
+                scra(y + 2 + sel, i, 0x1E)
+            sel = 2
+        # break
+    if c.upper() == 81:  # PgDn
+        if sel < params.E - 1:
+            for i in range(x + 2, x + 30):
+                scra(y + 2 + sel, i, 0x1E)
+            sel = params.E - 1
+        # break
+    if c.upper() == 72:
+        for i in range(x + 2, x + 30):
+            scra(y + 2 + sel, i, 0x1E)
+        sel = params.E - 1 if sel == 2 else sel - 1
+        # break
+    if c.upper() == 80:
+        for i in range(x + 2, x + 30):
+            scra(y + 2 + sel, i, 0x1E)
+        sel = 2 if sel == params.E - 1 else sel + 1
+        # break
+    # goto(select)
+    # all:
+
+    return 0
