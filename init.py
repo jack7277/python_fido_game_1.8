@@ -11,13 +11,12 @@ class Echo:
         self.msg = 0
         self.newm = 0
         self.new1 = 0  # messages: total, unread, new for this day
-        self.dl = date.Date()  # для отключенных - дата подключения. if < current - ignored
+        self.dl = Date()  # для отключенных - дата подключения. if < current - ignored
         self.plus = 0  # number of [+]
         self.traf = 0  # средний трафик в К
         self.trafk = 0.0  # traf*trafk - сколько мин. в день отнимает чтение эхи (Style==0)
         self.read = 0  # % свежих прочитанных писем, за 4 дня уходит в 0
         self.izverg = 0.0  # коэф. злобности модератора
-
 
     def event(self):
         if random.randint(0, 4) != 0:
@@ -27,10 +26,9 @@ class Echo:
         you.virus += random.randint(0, l) < (l >> 5)
         if random.randint(0, 4) == 0:
             you.antiv = params.D
-            message("A fresh antivirus came through the file echo! Useful thing...", 0x1F)
+            message("По файлэхе пришел свежий антивирус! Полезная вещь...", 0x1F)
             chmood(1)
         return 1
-
 
     def moderatorial(self, y, x):
         nn = [" ", " второй ", " третий "]
@@ -99,7 +97,7 @@ class Local(Echo):
             traf = 0
         while echo_time(0) > 24 * 60:
             traf /= 2
-        chmood(random.randint(0, 1) * (traf) >> 3)
+        chmood(_rnd(self.traf) >> 3)
         return traf
 
 
@@ -154,8 +152,8 @@ class Ruanekdot(Echo):
 
     def event(self):
         i = random.randint(0, 3)
-        chmood(int(i))
-        return int(i)
+        chmood(i)
+        return i
 
 
 class Job(Echo):
@@ -266,23 +264,6 @@ def bllog_event():
         you.skill[3] += 1
 
 
-
-echoes = []
-for i in range(0, LE + 6):
-    echoes.append(Echo())
-
-echoes[1] = Local()
-echoes[2] = Point()
-echoes[3] = Exch()
-echoes[4] = Bllog()
-echoes[5] = Ruanekdot()
-echoes[6] = Job()
-echoes[7] = Vcool()
-echoes[8] = Hardw()
-echoes[9] = Softw()
-echoes[10] = Fecho()
-
-
 class BBS:
     def __init__(self):
         self.name = None
@@ -298,3 +279,17 @@ class BBS:
 
 bbs = [BBS() for _ in range(10)]
 
+echoes = []
+for i in range(0, LE + 6):
+    echoes.append(Echo())
+
+echoes[1] = Local()
+echoes[2] = Point()
+echoes[3] = Exch()
+echoes[4] = Bllog()
+echoes[5] = Ruanekdot()
+echoes[6] = Job()
+echoes[7] = Vcool()
+echoes[8] = Hardw()
+echoes[9] = Softw()
+echoes[10] = Fecho()

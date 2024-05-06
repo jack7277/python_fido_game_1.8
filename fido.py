@@ -5,12 +5,14 @@ URL: http://yun.complife.net
 e-mail: comte@au.ru
 При внесении любых модификаций указание моих копирайтов обязательно
 """
+
+"""
+Remake by jack7277 @ 2024
+"""
+
 import sys
 from random import random
-from typing import Union
-
 import fido_date
-from params import *
 from echo import *
 from fido_random import random_, _rnd, lrandom
 from person import *
@@ -22,7 +24,7 @@ end2 = ("день", "дня", "дней")
 
 
 def upcase(c):
-    return chr(ord(c) & ~0x20)
+    return c.upper()
 
 
 def setbit(x, n):
@@ -33,9 +35,6 @@ def tstbit(x, n):
     return x & (1 << n)
 
 
-
-
-
 # Define the question structure as a class
 class Question:
     def __init__(self, qstn, ans, mark, correct):
@@ -43,11 +42,6 @@ class Question:
         self.ans = ans
         self.mark = mark
         self.correct = correct
-
-# echoes = [Echo(you) for _ in range(LE+6)]
-
-
-
 
 
 def delecho(n):
@@ -72,7 +66,8 @@ def final(st):
     ar = [0] * (80 * 24)
     
     s = (f"{st}{D - SD} {end(D - SD, end2)}. За это время вы потратили\n"
-         f"на почту {alltime // (24 * 60)} сут. {(alltime % (24 * 60)) // 60} ч. {alltime % (24 * 60) % 60} мин. чистого времени, получили {pluses} плюс{end(pluses)}\n"
+         f"на почту {alltime // (24 * 60)} сут. {(alltime % (24 * 60)) // 60} ч. {alltime % (24 * 60) % 60} мин. чистого времени, "
+         f"получили {pluses} плюс{end(pluses)}\n"
          f"в конференциях, сменили {newm} модем{end(newm)} и {newc} компьютер{end(newc)}.")
     showstat(1, 22, 0x30)
     ar = [0] * (80 * 24)
@@ -97,10 +92,6 @@ def min(a, b):
 
 def max(a, b):
     return a if a > b else b
-
-
-
-
 
 
 def round(f: float) -> int:
@@ -150,9 +141,6 @@ def min_(x, y):
 
 
 def quit(i):
-    # fclose(log)
-    # curson()
-    # clrscr()
     sys.exit()
 
 
@@ -218,9 +206,6 @@ def showhelp():
     s = ''
     prn(0, 0, f"Game │ BBS Upgrade Job Learn Soft Echoes Points Friends Time Next day")
     prncc(24, 0, s, 0x70)
-    # free(s)
-
-
 
 
 def showstat(y=1, x=22, c=0x30, c2=0x3F):
@@ -416,25 +401,8 @@ def OSinfo(n):
 
 
 
-
-
-def expel():
-    you.skill[you.sprof] -= 10
-    if you.skill[you.sprof] < 0:
-        you.skill[you.sprof] = 0
-    chmood(-10 - 8 * random())
-    you.spay = 0
-    you.sdays = 0
-    you.grad = 0
-    you.sprof = 0
-    if you.army == 1:
-        you.army = 3
-
-
-
-
 def newinfo(i):
-    return echoes[i].read > 100 * random()
+    return echoes[i].read > random.randint(0, 100)
 
 
 def joffer(wait=1):
@@ -464,7 +432,7 @@ def joffer(wait=1):
                               "    Теперь вам не до ФИДО. Ваша дальнейшая биография может быть\n"
                               "       не менее интересной, но это уже совсем другая история...\n \n"
                               "Ваша фидошная карьера продолжалась ")
-            # q = openbox(10, 11, 12, 45, 0x70)
+
             echoes[6].read = 0
             s = f"Предложения работы в {echoes[6].name}"
             prn(11, 12 + len(pref) // 2, s)
@@ -478,7 +446,7 @@ def joffer(wait=1):
                 # var[k] = s
             var[n] = None
             j = menu(13, 14, 0x70, 0x0F, var, " Профиль              З/п в месяц  Время в день", 1)
-            # closebox(10, 11, 12, 45, q)
+
             if j:
                 Down = 1
                 newdayf = 1
@@ -488,23 +456,6 @@ def joffer(wait=1):
                     message("Вы не прошли собеседование", 0x4F)
                 else:  # break  # goto no
                     newjob(vars[j][0], vars[j][1], vars[j][2])
-
-
-
-# def test(tst, N, y, x):
-#     j = random(N)
-#     tst[j].mark = 1
-#     clrbl(y + 1, x + 2, y + 6, x + 49, 0x0F)
-#     write(y + 1, x + 2, tst[j].qstn)
-#     for k in range(3):
-#         s = f"{k + 1}) {tst[j].ans[k]}"
-#         prn(y + 4 + k, x + 3, s)
-#     c = 0
-#     s = 'salloc(50)'
-#     while not (c > '0' and c < '4'):
-#         c = getch()
-#     c -= 0x31
-#     return tst[j].correct == c
 
 
 def BBSinfo(n):
@@ -570,7 +521,7 @@ def callBBS(n):
     u = 0
     u1 = 0
     LastBBS = n
-    # q = openbox(6, 18, 23, 70, 0x0F)
+
     if bbs[n].down:
         prn(8, 22, "BBS temporary down... Sorry")
         # goto(all)
@@ -587,8 +538,8 @@ def callBBS(n):
     # prn(7, 22, "    ")
     # delay(200)
     # showtime()
-    # k -= 1
-    # prn(22, 21, "                               ")
+    k -= 1
+    prn(22, 21, "                               ")
     con = min(bps[you.modem], bps[bbs[n].modem])
     s = "CONNECT " + str(con)
     prn(7, 22, s)
@@ -634,7 +585,6 @@ def callBBS(n):
             prn(22, 21, "NO CARRIER")
             BBSf = 0
             params.alltime += t0 - params.Time
-            # closebox(6, 18, 23, 70, q)
             showstat(1, 22, 0x30)
             return
 
@@ -734,32 +684,30 @@ def callBBS(n):
             # getc:
             # c = input()
             c = '1'
-            c = int(c)
-            if c > 0 and c < 9 and bbs[n].ech[c - 1]:
-                c -= 1
-                if not echoes[c].stat:
-                    if k < (echoes[c].traf * echoes[c].trafk):
-                        echoes[c].read = k / j * 100.0
+            if int(c) > 0 and int(c) < 9 and bbs[n].ech[int(c) - 1]:
+                tmp_c = int(c) - 1
+                if not echoes[tmp_c].stat:
+                    trf = echoes[tmp_c].traf * echoes[tmp_c].trafk
+                    if k < trf:
+                        echoes[tmp_c].read = k / j * 100.0
                         k1 = k
                     else:
                         k1 = j
-                        echoes[c].read = 100
+                        echoes[tmp_c].read = 100
                     k -= k1
                     params.Time -= k1
                     bbs[n].time -= k1
-                    if random.randint(0, 100) < echoes[c].read:
-                        echoes[c].event()
+                    if random.randint(0, 100) < echoes[tmp_c].read:
+                        echoes[tmp_c].event()
             elif c != 27:
                 pass
                 # goto(getc)
-            # clrbl(7, 19, 22, 69, 0x0F)
-            # break
+
         if c.upper() == 'G':
             # clrbl(7, 19, 22, 69, 0x0F)
             prn(22, 21, "NO CARRIER")
             BBSf = 0
             params.alltime += t0 - params.Time
-            # closebox(6, 18, 23, 70, q)
             showstat(1, 22, 0x30)
             return
 
@@ -769,7 +717,6 @@ def callBBS(n):
     # all1:
     BBSf = 0
     params.alltime += t0 - params.Time
-    # closebox(6, 18, 23, 70, q)
     showstat(1, 22, 0x30)
 
 
@@ -779,7 +726,7 @@ def setpref(list):
         if list[i] is None: continue
         if list[i][0] == '*':
             s = pref + list[i][1:]
-            list[i] = s
+            echoname[i] = s
 
 
 
@@ -798,13 +745,6 @@ def decmoney(x):
         return 0
 
 
-def check_traffic(traf):
-    if traf * 1024 / (bps[you.modem] / 10) / 60 > 30:
-        message("У вас слишком медленный модем для такого трафика", 0x4F)
-        return 0
-    return 1
-
-
 def echlink(echn=0, y=4, x=10):
     q = None
     i = 0
@@ -819,7 +759,7 @@ def echlink(echn=0, y=4, x=10):
             return 1
     else:
         sel = 2
-    # q = openbox(y, x, y + 18, x + 40, 0x1E)
+
     prnc(y + 1, x + 1, "From : ", 0x13)
     prnc(y + 1, x + 8, you.name, 0x1F)
     prnc(y + 2, x + 1, "To   : AreaFix", 0x13)
@@ -855,8 +795,8 @@ def echlink(echn=0, y=4, x=10):
                 chrep(-4 - random.randint(0, 3))
             else:
                 i += 1
-        # closebox(y, x, y + 18, x + 40, q)
         return c
+
     if c.upper() == 32:
         if echoes[sel].stat:
             echoes[sel].stat = 0
@@ -899,7 +839,7 @@ def echlink(echn=0, y=4, x=10):
         # break
     # goto(select)
     # all:
-    # closebox(y, x, y + 18, x + 40, q)
+
     return 0
 
 
@@ -936,7 +876,7 @@ def echread(au=1, y=6, x=2):
             return 1
     else:
         sel = 2
-    # q = openbox(y, x, y + LE + 7, x + 74, 0x1B)
+
     prnc(y + 1, x + 1, "From : ", 0x13)
     prnc(y + 1, x + 8, you.name, 0x1F)
     prnc(y + 2, x + 1, "To   : AreaFix", 0x13)
@@ -1019,7 +959,7 @@ def echread(au=1, y=6, x=2):
         # break
     # goto(select)
     # all:
-    # closebox(y, x, y + LE + 7, x + 74, q)
+
     return 0
 
 
@@ -1179,7 +1119,7 @@ def buyhd(wait=0):
     ar = [None] * 8
     var = [None] * 6
     vars = [[0] * 2 for _ in range(5)]  # цена, надежность
-    s = [None] * 70 + 12 * 5
+    s = [None] * 700
     q = None
     i = 0
     n = 0
@@ -1368,19 +1308,7 @@ def main():
     c = ''
     tl = []
     tmp = None
-    upgrm = ["Компьютер", "Модем", "Винт", "Себя", None]
-    emenu = ["GoldEd", "Подписка", "Создание", "Поведение в эхах", "Статистика", None]
-    points = ["Набрать", "Разогнать", None]
-    game = ["Save", "Log on", "View ReadMe", "Quit to DOS", None]
-    logst = ["Log on", "Log off"]
-    bbsmenu = ["Звонить", None, None]
-    tmenu = ["Приоритеты", "Развлечься", "Автопилот", None]
-    smenu = ["Антивирус", "Операционная система", "Купить", "Расчистить", None]
-    jmenu = ["Устроиться", "Уволиться", None]
-    lmenu = ["Поступить в институт", "Поступить на курсы", "Интенсивность занятий", "Бросить учебу", None]
-    fmenu = ["Пообщаться", "Попросить взаймы", None]
-    aut = ["Подписываться ", "Давать в долг ", "Ставить ОС    ", None]
-    autop = ["Вручную", "Да     ", "Нет    ", None]
+
 
     # show logo
     # buf = None
@@ -1416,7 +1344,7 @@ def main():
         SD.setday(1)
         # memset(you.name, ' ', 30)
         # you.name[0] = 0
-        # q = openbox(10, 15, 14, 65, 0x71)
+
         prn(11, 17, "Введите ваше настоящее имя (латинскими буквами)")
         # prnc(12, 25, you.name, 0x0F)
 
@@ -1436,6 +1364,7 @@ def main():
         citiname = 'Москва'
         pref = 'MO.'
         setpref(echoname)
+        import init
         month = 1
         # if i = menu(1, 0, 0x70, 0x0F, month, "Месяц", 1):
         #     SD.setmonth(i)
@@ -1455,17 +1384,19 @@ def main():
             you.comp = 1
         elif i == 3:
             you.money = 400
-        # closebox(10, 15, 14, 65, q)
+
         # echoes = initech()
-        # q = openbox(10, 10, 15, 70, 0x71)
+
         write(11, 12, "Вы, наверное, думаете, что вот так сразу и попали в ФИДО?\n"
                       "Как бы не так! Вас пустишь, а вы начнете флеймить и ламер-\n"
                       "ствовать! А это право надо еще заслужить!\n"
                       "Итак, вы начинаете в качестве юзера BBS...")
         anykey()
-        # closebox(10, 10, 15, 70, q)
+        import init
         for i in range(0, 10):
-            bbs[i].time = bbs[i].U = bbs[i].D = 0
+            bbs[i].time = 0
+            bbs[i].U = 0
+            bbs[i].D = 0
             bbs[i].soft = int(random.randint(0, 20000))
             bbs[i].name = bbsnames[i]
             bbs[i].modem = random.randint(0, 6)
@@ -1508,7 +1439,7 @@ def main():
                 if k > 20:
                     k = 20
                 if not you.sysop:
-                    # q = openbox(10, 21, 14, 59, 0x70)
+
                     prn(12, 24, "Название BBS")
                     prnc(12, 39, bbsnames[11], 0x0F)
                     # gotoyx(12, 39)
@@ -1518,7 +1449,7 @@ def main():
                     # if _input(bbsnames[11], 18):
                     #     you.sysop = 1
                     #     chrep(k)
-                    # closebox(10, 21, 14, 59, q)
+
                 else:
                     you.sysop = 0
                     chrep(-k)
@@ -1539,12 +1470,12 @@ def main():
             if i == 3:
                 buysoft()
             if i == 4:
-                # q = openbox(10, 23, 14, 55, 0x70)
+
                 prn(12, 25, "Сколько % софта оставить:")
                 k = 100
                 # nmbrscrl(&k, 12, 50, 100)
                 you.soft *= k / 100.0
-                # closebox(10, 23, 14, 55, q)
+
 
         if c.upper() == 'J':
             # i = menu(12, 25, 0x70, 0x0F, jmenu, "Работа", 1)
@@ -1599,10 +1530,10 @@ def main():
                 you.sprof = k
 
             if i == 3:
-                # q = openbox(10, 20, 14, 60, 0x70)
+
                 prn(12, 21, "Интенсивность учебы в ВУЗе      %")
                 # nmbrscrl(&you.intens, 12, 49, 200, 10, 10)
-                # closebox(10, 20, 14, 60, q)
+
 
             if i == 4:
                 you.spay = 0
@@ -1619,22 +1550,20 @@ def main():
                 i = 1 # todo дебаг
                 if i == 1:
                     if not echoes[2].stat:
-                        prn(0, 0, "Подпишитесь на эху %s", echoes[2].name)
+                        prn(0, 0, f"Подпишитесь на эху {echoes[2].name}")
                         message(s, 0x4F)
                         break
-                    # q = openbox(10, 23, 14, 55, 0x70)
+
                     prn(12, 25, "Сколько поинтов набрать:")
                     # nmbrscrl(&maxpnt, 12, 50, 64, you.points)
-                    # closebox(10, 23, 14, 55, q)
+
                 if i == 2:
-                    # q = openbox(10, 23, 14, 57, 0x70)
                     prn(12, 25, "Сколько поинтов оставить:")
                     k = you.points
                     chrep(nmbrscrl(you.points, 12, 50, you.points) * (4 + 3 * random()))
                     if k:
                         echoes[1].traf *= you.points / k
                     maxpnt = 0
-                    # closebox(10, 23, 14, 57, q)
 
         if c.upper() == 'F':
             if not you.friends:
@@ -1675,7 +1604,7 @@ def main():
                     if you.moder > 3:
                         message("Вы хотите модерировать слишком много конференций!", 0x4F)
                         break
-                    # q = openbox(10, 13, 15, 68, 0x70)
+
                     # echoes[E] = Echo(E)
                     prn(12, 14, "Название конференции")
                     # prnc(12, 36, echoes[E].name, 0x0F)
@@ -1695,7 +1624,7 @@ def main():
                     #     you.moder += 1
                     #     E += 1
                     #     chrep(4)
-                    # closebox(10, 13, 15, 68, q)
+
                     break
                 if i == 4:
                     # i = menu(12, 25, 0x70, 0x0F, style, "Ваш стиль", Style + 1)
@@ -1703,7 +1632,7 @@ def main():
                         Style = i - 1
                     break
                 if i == 5:
-                    # q = openbox(4, 5, 22, 75, 0x70)
+
                     prn(4, 13, "Эха")
                     prn(4, 37, "Трафик,К")
                     prn(4, 46, "Время,мин")
@@ -1740,7 +1669,6 @@ def main():
                         message(s, 0x4F)
                         break
                     if you.reput > 32:
-                        # q = openbox(10, 14, 10 + 7, 14 + 50, 0x0F)
                         prn(10, 30, "Экзамен по полиси")
                         for i in range(0, 9):
                             qstns[i].mark = 0
@@ -1748,7 +1676,7 @@ def main():
                             pass
                             # if not test(qstns, 9, 10, 14):
                             #     break
-                        # closebox(10, 14, 10 + 7, 14 + 50, q)
+
                         if i < 3:
                             message("Учите полиси!", 0x4F)
                             # goto ref
@@ -1770,7 +1698,6 @@ def main():
                     if you.reput > 128:
                         y = 1
                         x = 1
-                        # q = openbox(y, x, y + 22, x + 46, 0x1E)
                         prn(y, x + 12, "Укажите пункты заявки")
                         for k in range(0, 30):
                             i = int(21 * random())
@@ -1822,7 +1749,7 @@ def main():
                             break
                         # goto select
                         # all:
-                        # closebox(y, x, y + 22, x + 46, q)
+
                         if not c:
                             break
                         for i in range(0, 21):
@@ -1857,7 +1784,6 @@ def main():
             # switch (i):
             if i == 1:
                 prncc(24, 0,"Enter | Swap │ Esc | Exit", 0x70)
-                # q = openbox(10, 30, 15, 50, 0x70)
                 for i in range(0, 4):
                     prn(11 + i, 32, occup[i].name)
                 i = 1
@@ -1873,7 +1799,7 @@ def main():
                     occup[i] = tmp
                     # break
                 if c == 27:
-                    # closebox(10, 30, 15, 50, q)
+
                     showhelp()
                     # goto all1
                 if c == 72:
@@ -1892,11 +1818,11 @@ def main():
                     message("С такими финансами не до развлечений...", 0x4F)
                 else:
                     k = 5
-                    # q = openbox(10, 24, 15, 56, 0x70)
+
                     prn(11, 26, "На какую сумму развлекаемся?")
                     scrs(13, 37, '$')
                     # i = nmbrscrl(&k, 13, 38, min(you.money, 999), 5)
-                    # closebox(10, 24, 15, 56, q)
+
                     if i:
                         you.money -= k
                         if k > 64:
@@ -1914,7 +1840,7 @@ def main():
                             fire()
                 # break
             if i == 3:
-                # q = openbox(10, 28, 15, 52, 0x70)
+
                 for i in range(0, 3):
                     prn(11 + i, 30, aut[i])
                     prn(11 + i, 30 + 14, autop[auto_[i]])
@@ -1942,7 +1868,7 @@ def main():
                             prn(14, 30 + 14, s)
                     # break
                 if c == 27:
-                    # closebox(10, 28, 15, 51, q)
+
                     showhelp()
                     # goto all1
                 if c == 72:

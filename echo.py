@@ -1,8 +1,3 @@
-import random
-
-import date
-import params
-from person import *
 from fido_random import _rnd
 from init import *
 from mood import *
@@ -22,6 +17,13 @@ def echtime1(i, n):
     if not t and n:
         t = 1
     return t
+
+
+def check_traffic(traf):
+    if traf * 1024 / (bps[you.modem] / 10) / 60 > 30:
+        message("У вас слишком медленный модем для такого трафика", 0x4F)
+        return 0
+    return 1
 
 
 def incsoft(ds, chrp=1):

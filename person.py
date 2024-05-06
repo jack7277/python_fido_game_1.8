@@ -1,4 +1,5 @@
 import params
+from fido_date import *
 from fido_random import random_
 from reputation import chrep
 
@@ -36,9 +37,9 @@ class Person:
         self.moder = 0
         self.points = 0
         self.friends = 0
-        self.antiv = params.Date()
-        self.wdate = params.Date()
-        self.grad = params.Date()
+        self.antiv = Date()
+        self.wdate = Date()
+        self.grad = Date()
         self.tries = 0
         self.army = 0
         self.intens = 0

@@ -1,7 +1,7 @@
 import random
 import time
-from datetime import datetime
-from date import Date
+
+from fido_date import *
 from fido_random import _rnd
 from mood import *
 from person import you
@@ -26,22 +26,14 @@ def getch():
         return ch
 
 
+def round(f):
+    return int(f + (0.5 if f > 0 else -0.5))
+
 
 end1 = ("", "а", "ов")
 end2 = ("день", "дня", "дней")
 
-
 # Define the OS names
-OSnames = [
-    "MSDOS 5.0",
-    "MSDOS+Win'3.11",
-    "Windows 95",
-    "Windows NT",
-    "OS/2",
-    "Linux",
-    None
-]
-
 
 qstns = [
     {"qstn": "Каково время ZMH зоны 2?",
@@ -151,25 +143,34 @@ cities = [
     {"name": "Челябинск", "pref": "CHEL.", "frnds": 0, "fr": 0}
 ]
 
-
-def getcurdate():
-    now = datetime.now()
-    d = now.day
-    m = now.month
-    y = now.year
-    d = Date(d, m, y)
-    return d
-
-
+upgrm = ["Компьютер", "Модем", "Винт", "Себя", None]
+emenu = ["GoldEd", "Подписка", "Создание", "Поведение в эхах", "Статистика", None]
+points = ["Набрать", "Разогнать", None]
+game = ["Save", "Log on", "View ReadMe", "Quit to DOS", None]
+logst = ["Log on", "Log off"]
+bbsmenu = ["Звонить", None, None]
+tmenu = ["Приоритеты", "Развлечься", "Автопилот", None]
+smenu = ["Антивирус", "Операционная система", "Купить", "Расчистить", None]
+jmenu = ["Устроиться", "Уволиться", None]
+lmenu = ["Поступить в институт", "Поступить на курсы", "Интенсивность занятий", "Бросить учебу", None]
+fmenu = ["Пообщаться", "Попросить взаймы", None]
+aut = ["Подписываться ", "Давать в долг ", "Ставить ОС    ", None]
+autop = ["Вручную", "Да     ", "Нет    ", None]
 
 style = ["Read-only", "Неактивный", "Активный", "Flame", None]
+week = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
+month = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+         "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь", None]
+situat = ["Нестабильная", "Стабильная", None]
+dtm = ""
+
 prob = [0, 1, 4, 8]  # вероятность [+] в % как f(Style) при izverg==1
-lstscn = Date()
+lstscn = fido_date.Date()
 newdayf = 0
 LE = 10
 BBSf = 0
-D = Date()
-SD = Date()
+D = fido_date.Date()
+SD = fido_date.Date()
 E = LE + 1
 Stable = 0
 Log = 0
@@ -185,13 +186,6 @@ City = 0
 maxpnt = 0
 auto_ = [0, 0, 0, 0]  # link, debt, OS, antivirus
 Time = 0
-
-week = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
-month = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь",
-         "Декабрь", None]
-situat = ["Нестабильная", "Стабильная", None]
-
-dtm = ""
 
 
 def scrs(y, x, c):
@@ -215,7 +209,6 @@ def end(x, ending=end1):
 
 
 mtok = lambda x: (x) << 10
-
 BB = lambda: you.hdspace < mtok(hd[you.hd])
 
 
@@ -279,56 +272,6 @@ def yn(qst, ans=0, c1=0x70, c2=0xF):
     return s == 1
 
 
-def OSinfo(n):
-    s = f"Install time {os[n-1]['itime']} min.\nSpace required {os[n-1]['memory'] >> 10}M"
-    write(14, 2, s)
-
-
-def instOS(n=0):
-    o = None
-    i = None
-    y = 10
-    x = 0
-    res = 0
-    Time = 30  # ?????? тут этого не должно быть
-    if not n:
-        # q = openbox(13, 0, 16, 22, 0x30)
-        o = menuf(12, 25, 0x70, 0x0F, OSnames, "Install", 1, OSinfo)
-        # closebox(13, 0, 16, 22, q)
-    else:
-        o = n + 1
-    while (1):
-        if o:
-            o -= 1
-            if os[o]['memory'] > Time:
-                message("Сегодня не успеем...", 0x4F)
-                break
-            if os[o]['mincomp'] > you.comp:
-                message("У вас слишком хилый компьютер!", 0x4F)
-                break
-            if you.soft + os[o]['memory'] > you.hdspace:
-                message("Не хватает места на винте!", 0x4F)
-                break
-            # q = openbox(y, x, y + 6, x + 40, 0x0F)
-            prn(0, 0, f"Installing {OSnames[o]}...")
-            # prn(y + 1, x + 1, s)
-            for i in range(1, os[o]['itime'] + 1):
-                percent = 100 if i == os[o]['itime'] else i * 100 / os[o]['itime']
-                prn(0, 0, f"{percent} complete")
-                s = ''
-                prn(y + 3, x + 2, s)
-                Time -= 1
-                showtime()
-                if o > 0 and _rnd(400 / (you.skill[1] + 1)) and not _rnd(10):
-                    message("Глюки!!! Придется переинсталлировать заново...", 0x4F)
-                    break
-                delay(400)
-            # closebox(y, x, y + 6, x + 40, q)
-            you.os = o
-            res = 1
-            if you.osreq:
-                you.wdate = D + 6
-    return res
 
 
 def studper(D):
@@ -349,7 +292,7 @@ def fire():
     you.skill[you.wprof] -= 15
     if you.skill[you.wprof] < 0:
         you.skill[you.wprof] = 0
-    chmood(-15 - random.randint(0, 1) * (you.income) / (you.wtime / 60.0) / 8)
+    chmood(-15 - _rnd((you.income) / (you.wtime / 60.0) / 8))
     you.ftime += you.wtime
     you.wtime = 0
     you.wdays = 0
@@ -389,4 +332,3 @@ os = [
     {"memory": 150 * (2 ** 10), "itime": 50, "mincomp": 3},
     {"memory": 200 * (2 ** 10), "itime": 90, "mincomp": 3}
 ]
-
